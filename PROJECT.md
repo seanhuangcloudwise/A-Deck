@@ -22,17 +22,21 @@ A-Deck/
 ├── skills/
 │   └── pptx/
 │       ├── SKILL.md
-│       ├── scripts/
-│       ├── master-library/
-│       ├── togaf-architecture/
-│       └── XSean/
+│       ├── scripts/              # 共享渲染库 pptx_lib.py + office 工具
+│       ├── shared/               # 跨 loader 公共工具 renderer_utils.py
+│       ├── master-library/       # 品牌母版资产（3 色系）
+│       ├── togaf-architecture/   # TOGAF 图形 Skill（BA/AA/TA loaders）
+│       ├── gtm-architecture/     # GTM 图形 Skill
+│       ├── roadmap-architecture/ # 路线图图形 Skill
+│       └── XSean/                # XSean 专属图形域（diagrams + loaders）
 ├── projects/
-│   ├── capability-map-test/
-│   ├── service-interaction-test/
-│   ├── function-capability-mapping-test/
-│   ├── business-process-test/
-│   └── business-process-full-deck/
-└── output/
+│   ├── ppt-maker-intro-cloudwise-2025/  # Cloudwise 自我介绍（主力项目，多母版）
+│   ├── business-process-full-deck/      # 业务流程泳道图全量演示
+│   ├── togaf-architecture-full-demo/    # TOGAF 全架构演示
+│   ├── gtm-a-deck-demo-full/            # GTM 全流程演示
+│   ├── roadmap-architecture-full-demo/  # 路线图架构全量演示
+│   └── ...                              # 其他测试 & 验证项目
+└── output/                       # 学习产物 & QA 中间产物
 ```
 
 ## Workflow Coverage / 工作流覆盖

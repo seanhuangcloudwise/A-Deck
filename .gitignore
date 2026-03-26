@@ -1,0 +1,29 @@
+# OS
+.DS_Store
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+
+# Build and generated artifacts
+output/
+/tmp/
+*.log
+*.pptx
+*.pptx.bak
+
+# VS Code local state
+.vscode/
+
+# Misc
+*.swp
+*.swo

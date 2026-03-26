@@ -1,0 +1,37 @@
+{
+  "masterId": "dark-cloudwise-green",
+  "displayName": "cloudwise dark green",
+  "sceneSlug": "roadmap-architecture",
+  "sourceFile": "skills/pptx/master-library/dark-cloudwise-green/cloudwise-master.pptx",
+  "addedAt": "2026-03-26",
+  "layoutCount": 12,
+  "masterCount": 1,
+  "fonts": [
+    "微软雅黑"
+  ],
+  "topColors": [
+    "0F1423",
+    "75BD42",
+    "30C0B4",
+    "4874CB",
+    "FFFFFF",
+    "EE822F",
+    "F2BA02",
+    "E54C5E"
+  ],
+  "layoutNames": [
+    "主内容",
+    "标题幻灯片",
+    "标题和内容",
+    "节标题",
+    "两栏内容",
+    "比较",
+    "仅标题",
+    "空白",
+    "图片与标题",
+    "竖排标题与文本",
+    "内容",
+    "自定义版式"
+  ],
+  "notes": "Imported from /Volumes/work/04 产品体系/宣发资料/EAI/市场胶片/0123/dark-cloudwise-green1.pptx"
+}

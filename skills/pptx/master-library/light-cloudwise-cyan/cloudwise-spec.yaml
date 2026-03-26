@@ -1,0 +1,171 @@
+# Cloudwise AI Product Master Template Specification
+# 
+# This file defines all template-specific rules: layout names, safe zones, 
+# infrastructure colors, and theme information.
+# 
+# Version: 1.0
+# Date: 2026-03-26
+
+template:
+  name: "Cloudwise AI Product"
+  file: "Cloudwise AI 创新产品体系-方案.pptx"
+  aspect_ratio: "16:9"
+  slide_width_in: 13.333  # actual prs.slide_width / 914400 ≈ 10.0"
+  slide_height_in: 7.5
+
+# Layout definitions (names to match in master slide layouts)
+layout:
+  # Names: list of possible layout names in the master (case-insensitive matching)
+  names:
+    cover:    ["封面"]
+    content:  ["內容页", "内容页"]
+    thanks:   ["感谢页"]
+  
+  # Fallback indices if names don't match any layouts
+  indices:
+    cover:    0
+    content:  1
+    thanks:   7
+
+# Content safe zone (all content should fit within these bounds, in inches)
+safe_zone:
+  left_in:        0.3
+  right_in:       9.68
+  top_in:         0.75      # BASE_HEIGHT_IN * 0.1
+  bottom_in:      6.75      # BASE_HEIGHT_IN * 0.9
+  
+  # Header area (within title placeholder or manual rendering)
+  header_top_in:      0.12
+  header_height_in:   0.58
+  
+  # Content area (below title, for diagram content)
+  content_top_in:     1.08  # SAFE_TOP + 0.33"
+  
+  # Predefined flow/list positions (for diagram clarity)
+  flow_y_in:          2.1      # Standard horizontal flow rectangle Y
+  list_y_in:          4.1      # Standard list start Y
+
+typography:
+  font_scale: 1.0
+  min_font_size: 8.0
+  tokens:
+    display: 28
+    title: 24
+    h2: 20
+    h3: 16
+    subtitle: 14
+    body: 12
+    label: 10
+    caption: 9
+    micro: 8
+
+# Infrastructure color palette (template-level, NOT theme-specific)
+# These define the "style" of the template independent of theme colors (primary, secondary, etc.)
+# 
+# Theme colors (from theme.xml) are extracted dynamically;
+# infrastructure colors define: soft backgrounds, separators, semantic meanings like domain boxes
+# 
+infrastructure_colors:
+  mode: "light"  # "light" or "dark" — used for auto-adaptation of derived colors
+  
+  # Named infrastructure colors (referenced by render_capable_map, header, etc.)
+  palette:
+    # Primary/secondary brands (typically match theme, but can differ)
+    cyan:         [0, 204, 215]         # D8F6F8 → softer brand tone
+    cyan_2:       [103, 224, 230]       # E9F7FB
+    cyan_3:       [216, 246, 248]       # ultra-light
+    
+    # Text & contrast
+    dark:         [34, 34, 34]          # Nearly black, used for text
+    text:         [47, 47, 47]          # Slightly lighter, default add_text() color
+    gray:         [102, 102, 102]       # Mid-gray, used for subtitles and secondary text
+    mid_gray:     [138, 149, 153]       # Between gray and light
+    
+    # Backgrounds & fills
+    light:        [247, 249, 250]       # Very light background, almost-white
+    white:        [255, 255, 255]       # Pure white
+    
+    # Accents & diagrams
+    line:         [217, 228, 232]       # Divider/border color
+    soft_blue:    [233, 247, 251]       # Light background for blue-themed boxes
+    soft_green:   [233, 246, 234]       # Light background for success/positive
+    soft_yellow:  [251, 247, 232]       # Light background for warning/caution
+    
+    # Semantic domain-specific
+    domain_bg:    [68, 84, 106]         # Dark blue-gray for domain headers
+    brand_gray:   [165, 167, 170]       # Medium gray, used for badges and alternates
+
+# Theme color extraction (from theme.xml)
+# 
+# These are schema roles that will be automatically extracted from <a:clrScheme>
+# in the master template's theme.xml. Intentionally left here as reference;
+# runtime code extracts these dynamically so they adapt to light/dark master variants.
+#
+theme_colors:
+  # Expected scheme roles and their meanings (for documentation)
+  # Actual values extracted at runtime from theme.xml
+  dk1:      "Dark 1 (text/foreground)"
+  dk2:      "Dark 2 (headers/backgrounds) → mapped to 'dark'"
+  lt1:      "Light 1 (white backgrounds) → mapped to 'white'"
+  lt2:      "Light 2 (gray backgrounds) → mapped to 'light'"
+  accent1:  "Brand Primary (cyan) → mapped to 'primary'"
+  accent2:  "Brand Secondary (light cyan) → mapped to 'secondary'"
+  accent3:  "Accent 3 (cyan variant)"
+  accent4:  "Accent 4 (blue)"
+  accent5:  "Accent 5 (blue)"
+  accent6:  "Accent 6 (green)"
+  hlink:    "Hyperlink color (if used)"
+  folHlink: "Followed hyperlink color (if used)"
+
+# Maturity/capability status color mapping (template-level semantic colors)
+# Used by render_capability_map() to indicate GA, Beta, Alpha, Planned status
+maturity_status:
+  GA:
+    fill:   "cyan"        # Reference to infrastructure_colors.palette
+    border: "cyan"
+    text:   "white"
+    dash:   false
+  
+  Managed:
+    fill:   [83, 227, 235]  # Slightly different from cyan (legacy reason)
+    border: "cyan"
+    text:   [47, 47, 47]    # Dark text
+    dash:   false
+  
+  Beta:
+    fill:   "cyan_3"
+    border: "cyan"
+    text:   [47, 47, 47]
+    dash:   false
+  
+  Alpha:
+    fill:   "brand_gray"
+    border: "brand_gray"
+    text:   "white"
+    dash:   false
+  
+  Planned:
+    fill:   "white"
+    border: "brand_gray"
+    text:   "brand_gray"
+    dash:   true
+
+# ─────────────────────────────────────────────────────────────────
+# NOTES FOR FUTURE VARIANTS
+# ─────────────────────────────────────────────────────────────────
+#
+# Dark Theme Variant (cloudwise-dark-spec.yaml):
+#   - infrastructure_colors.mode: "dark"
+#   - Switch light ↔ dark in palette:
+#     * light → [40, 40, 40]  (dark background)
+#     * dark → [245, 245, 245]  (light text on dark)
+#     * soft_* backgrounds → darker variants
+#     * line → lighter variant for visibility
+#   - Same layout names & safe zones (inherited)
+#   - theme.xml will provide complementary dark color scheme
+#
+# Custom Theme Variant (e.g., partner-spec.yaml):
+#   - Different safe zones if slide dimensions differ
+#   - Different infrastructure_colors palette
+#   - Same or new layout names
+#   - Generator loads via: load_template_spec('path/to/partner-spec.yaml')

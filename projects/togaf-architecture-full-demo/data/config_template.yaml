@@ -1,0 +1,207 @@
+meta:
+  title: "TOGAF Architecture Full Demo"
+  subtitle: "Registry-Based Loader Architecture | BA/AA/DA/TA"
+  back_title: "Thank You"
+
+sections:
+  - title: "L1 Business Architecture"
+    slides:
+      ba_01_capability_map:
+        title: "BA-01 Capability Map | 业务能力地图"
+        subtitle: "能力域与成熟度焦点"
+        content:
+          note: "Capability domain ownership and maturity hotspots"
+      ba_02_value_stream:
+        title: "BA-02 Value Stream | 价值流图"
+        subtitle: "价值交付阶段与关键产出"
+        content:
+          note: "Stage-by-stage value delivery and KPI checkpoints"
+      ba_03_business_process:
+        title: "BA-03 Business Process | 业务流程图"
+        subtitle: "L1/L2 过程与责任边界"
+        content:
+          note: "Swimlane-ready process decomposition and handoff points"
+      ba_04_actor_interaction:
+        title: "BA-04 Actor Interaction | 组织与角色协作图"
+        subtitle: "角色协作关系与接口"
+        content:
+          note: "Cross-role collaboration and ownership boundaries"
+      ba_05_service_decomposition:
+        title: "BA-05 Service Decomposition | 业务服务分解图"
+        subtitle: "服务目录分层与聚合"
+        content:
+          note: "Service hierarchy and business domain decomposition"
+      ba_06_function_capability_mapping:
+        title: "BA-06 Function-Capability Mapping | 功能-能力映射图"
+        subtitle: "功能覆盖能力与差距"
+        content:
+          note: "Function-to-capability traceability and gap analysis"
+      ba_07_as_is_to_be:
+        title: "BA-07 As-Is To-Be | As-Is / To-Be 对比图"
+        subtitle: "现状到目标的转型路径"
+        content:
+          note: "Transformation deltas and migration priorities"
+      ba_08_scenario_journey:
+        title: "BA-08 Scenario Journey | 业务场景旅程图"
+        subtitle: "场景触点与痛点"
+        content:
+          note: "Journey stages, pain points, and expected outcomes"
+      ba_09_kpi_alignment:
+        title: "BA-09 KPI Alignment | KPI-目标对齐图"
+        subtitle: "目标-指标-责任链路"
+        content:
+          note: "Objective, KPI, target, and owner alignment"
+      ba_10_raci_matrix:
+        title: "BA-10 RACI Matrix | 业务治理责任矩阵"
+        subtitle: "活动与角色职责清晰化"
+        content:
+          note: "RACI accountability matrix for governance clarity"
+
+  - title: "L2 Application Architecture"
+    slides:
+      aa_01_application_landscape:
+        title: "AA-01 Application Landscape | 应用全景图"
+        subtitle: "应用组合视图"
+        content:
+          note: "Portfolio-level application landscape and lifecycle"
+      aa_02_component_diagram:
+        title: "AA-02 Component Diagram | 应用组件图"
+        subtitle: "模块与依赖"
+        content:
+          note: "Internal components and module dependencies"
+      aa_03_integration_map:
+        title: "AA-03 Integration Map | 集成与接口地图"
+        subtitle: "系统集成关系"
+        content:
+          note: "Interface contracts and integration pathways"
+      aa_04_bounded_context_map:
+        title: "AA-04 Bounded Context Map | 限界上下文图"
+        subtitle: "领域边界与关系"
+        content:
+          note: "DDD bounded contexts and upstream/downstream links"
+      aa_05_service_interaction:
+        title: "AA-05 Service Interaction | 服务交互图"
+        subtitle: "运行时调用拓扑"
+        content:
+          note: "Synchronous and asynchronous service interactions"
+      aa_06_api_dependency_graph:
+        title: "AA-06 API Dependency Graph | API 依赖关系图"
+        subtitle: "提供方与消费方依赖"
+        content:
+          note: "API dependency risk and version coupling"
+      aa_07_event_driven_architecture:
+        title: "AA-07 Event-Driven Architecture | 事件驱动架构图"
+        subtitle: "事件生产与消费链路"
+        content:
+          note: "Producer-broker-consumer event topology"
+      aa_08_microservice_decomposition:
+        title: "AA-08 Microservice Decomposition | 微服务分解图"
+        subtitle: "服务边界与分组"
+        content:
+          note: "Microservice boundaries and domain partitioning"
+      aa_09_app_capability_mapping:
+        title: "AA-09 App-Capability Mapping | 应用-能力覆盖图"
+        subtitle: "应用对业务能力支撑"
+        content:
+          note: "Application support coverage by capability"
+      aa_10_application_sequence_flow:
+        title: "AA-10 Application Sequence Flow | 应用序列流图"
+        subtitle: "时序交互链"
+        content:
+          note: "Request-response sequence across services"
+      aa_11_product_capability_map:
+        title: "AA-11 Product Capability Map | 分层产品能力架构图"
+        subtitle: "产品分层与共享能力"
+        content:
+          note: "Layered product architecture and shared capabilities"
+
+  - title: "L3 Data Architecture"
+    slides:
+      da_01_conceptual_data_model:
+        title: "DA-01 Conceptual Data Model | 概念数据模型"
+        subtitle: "核心实体与关系"
+        content:
+          note: "Business-level entities and relationships"
+      da_02_logical_data_model:
+        title: "DA-02 Logical Data Model | 逻辑数据模型"
+        subtitle: "属性与结构"
+        content:
+          note: "Normalized logical entities and attributes"
+      da_03_data_flow_diagram:
+        title: "DA-03 Data Flow Diagram | 数据流图"
+        subtitle: "源到目标的数据流"
+        content:
+          note: "Data movement and transformation stages"
+      da_04_data_domain_map:
+        title: "DA-04 Data Domain Map | 数据域地图"
+        subtitle: "数据域边界"
+        content:
+          note: "Domain ownership and data classification"
+      da_05_data_governance_framework:
+        title: "DA-05 Data Governance Framework | 数据治理框架图"
+        subtitle: "治理角色与机制"
+        content:
+          note: "Stewardship model, policy, and quality controls"
+      da_06_master_data_lifecycle:
+        title: "DA-06 Master Data Lifecycle | 主数据生命周期图"
+        subtitle: "创建到归档"
+        content:
+          note: "Master data lifecycle and checkpoints"
+      da_07_data_lineage:
+        title: "DA-07 Data Lineage | 数据血缘图"
+        subtitle: "血缘追踪与合规"
+        content:
+          note: "End-to-end lineage and transformation trace"
+      da_08_data_catalog_structure:
+        title: "DA-08 Data Catalog Structure | 数据目录结构图"
+        subtitle: "目录分类与元数据"
+        content:
+          note: "Catalog taxonomy and metadata governance"
+
+  - title: "L4 Technology Architecture"
+    slides:
+      ta_01_infrastructure_topology:
+        title: "TA-01 Infrastructure Topology | 基础设施拓扑图"
+        subtitle: "计算存储网络拓扑"
+        content:
+          note: "Compute, storage, and network topology"
+      ta_02_deployment_architecture:
+        title: "TA-02 Deployment Architecture | 部署架构图"
+        subtitle: "环境部署与发布路径"
+        content:
+          note: "Environment deployment and release flow"
+      ta_03_network_zoning:
+        title: "TA-03 Network Zoning | 网络分区图"
+        subtitle: "网络域与边界"
+        content:
+          note: "Trust zones, DMZ, and segmentation controls"
+      ta_04_cloud_architecture:
+        title: "TA-04 Cloud Architecture | 云架构图"
+        subtitle: "云资源与服务映射"
+        content:
+          note: "Hybrid/multi-cloud architecture mapping"
+      ta_05_container_orchestration:
+        title: "TA-05 Container Orchestration | 容器编排架构图"
+        subtitle: "集群与服务编排"
+        content:
+          note: "Cluster layout, workloads, and ingress paths"
+      ta_06_security_architecture:
+        title: "TA-06 Security Architecture | 安全架构图"
+        subtitle: "控制域与安全机制"
+        content:
+          note: "Zero-trust controls and defense layers"
+      ta_07_monitoring_observability:
+        title: "TA-07 Monitoring Observability | 监控与可观测性图"
+        subtitle: "指标日志链路"
+        content:
+          note: "Metrics, logs, traces, and alerting flow"
+      ta_08_disaster_recovery:
+        title: "TA-08 Disaster Recovery | 灾备架构图"
+        subtitle: "容灾切换与目标"
+        content:
+          note: "Failover topology and RTO/RPO governance"
+      ta_09_platform_capability_map:
+        title: "TA-09 Platform Capability Map | 平台能力地图"
+        subtitle: "平台服务能力层次"
+        content:
+          note: "Platform capability taxonomy and maturity"

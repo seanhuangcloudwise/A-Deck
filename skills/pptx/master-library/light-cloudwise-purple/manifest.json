@@ -1,0 +1,40 @@
+{
+  "masterId": "light-cloudwise-purple",
+  "displayName": "cloudwise purple light",
+  "sceneSlug": "overall-intro",
+  "sourceFile": "skills/pptx/master-library/light-cloudwise-purple/cloudwise-master.pptx",
+  "addedAt": "2026-03-26",
+  "updatedAt": "2026-03-26",
+  "layoutCount": 11,
+  "masterCount": 1,
+  "fonts": [
+    "苹方-简"
+  ],
+  "topColors": [
+    "7C3AED",
+    "1E293B",
+    "F5F5F5",
+    "2D2D2D",
+    "D4D4D4",
+    "D8BFD8",
+    "F0F5F9",
+    "B4C7E7",
+    "5B9BD5",
+    "0052CC"
+  ],
+  "layoutNames": [
+    "节标题",
+    "标题幻灯片",
+    "标题和内容",
+    "两栏内容",
+    "比较",
+    "仅标题",
+    "空白",
+    "图片与标题",
+    "竖排标题与文本",
+    "内容",
+    "末尾幻灯片"
+  ],
+  "defaultLineColor": "E2E8F0",
+  "notes": "Theme colors patched 2026-03-26 to user-specified purple palette. Layout assets re-extracted from patched master."
+}

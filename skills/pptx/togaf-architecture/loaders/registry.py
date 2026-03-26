@@ -1,0 +1,93 @@
+"""TOGAF loader registry — each diagram ID mapped to its dedicated load function."""
+
+from ba_loader import (
+    load_ba_01_capability_map,
+    load_ba_02_value_stream,
+    load_ba_03_business_process,
+    load_ba_04_actor_interaction,
+    load_ba_05_service_decomposition,
+    load_ba_06_function_capability_mapping,
+    load_ba_07_as_is_to_be,
+    load_ba_08_scenario_journey,
+    load_ba_09_kpi_alignment,
+    load_ba_10_raci_matrix,
+)
+from aa_loader import (
+    load_aa_01_application_landscape,
+    load_aa_02_component_diagram,
+    load_aa_03_integration_map,
+    load_aa_04_bounded_context_map,
+    load_aa_05_service_interaction,
+    load_aa_06_api_dependency_graph,
+    load_aa_07_event_driven_architecture,
+    load_aa_08_microservice_decomposition,
+    load_aa_09_app_capability_mapping,
+    load_aa_10_application_sequence_flow,
+    load_aa_11_product_capability_map,
+)
+from da_loader import (
+    load_da_01_conceptual_data_model,
+    load_da_02_logical_data_model,
+    load_da_03_data_flow_diagram,
+    load_da_04_data_domain_map,
+    load_da_05_data_governance_framework,
+    load_da_06_master_data_lifecycle,
+    load_da_07_data_lineage,
+    load_da_08_data_catalog_structure,
+)
+from ta_loader import (
+    load_ta_01_infrastructure_topology,
+    load_ta_02_deployment_architecture,
+    load_ta_03_network_zoning,
+    load_ta_04_cloud_architecture,
+    load_ta_05_container_orchestration,
+    load_ta_06_security_architecture,
+    load_ta_07_monitoring_observability,
+    load_ta_08_disaster_recovery,
+    load_ta_09_platform_capability_map,
+)
+
+LOADER_REGISTRY = {
+    # ── Business Architecture (10) ────────────────────────────────────────────
+    "ba_01_capability_map":            load_ba_01_capability_map,
+    "ba_02_value_stream":              load_ba_02_value_stream,
+    "ba_03_business_process":          load_ba_03_business_process,
+    "ba_04_actor_interaction":         load_ba_04_actor_interaction,
+    "ba_05_service_decomposition":     load_ba_05_service_decomposition,
+    "ba_06_function_capability_mapping": load_ba_06_function_capability_mapping,
+    "ba_07_as_is_to_be":               load_ba_07_as_is_to_be,
+    "ba_08_scenario_journey":          load_ba_08_scenario_journey,
+    "ba_09_kpi_alignment":             load_ba_09_kpi_alignment,
+    "ba_10_raci_matrix":               load_ba_10_raci_matrix,
+    # ── Application Architecture (11) ─────────────────────────────────────────
+    "aa_01_application_landscape":     load_aa_01_application_landscape,
+    "aa_02_component_diagram":         load_aa_02_component_diagram,
+    "aa_03_integration_map":           load_aa_03_integration_map,
+    "aa_04_bounded_context_map":       load_aa_04_bounded_context_map,
+    "aa_05_service_interaction":       load_aa_05_service_interaction,
+    "aa_06_api_dependency_graph":      load_aa_06_api_dependency_graph,
+    "aa_07_event_driven_architecture": load_aa_07_event_driven_architecture,
+    "aa_08_microservice_decomposition":load_aa_08_microservice_decomposition,
+    "aa_09_app_capability_mapping":    load_aa_09_app_capability_mapping,
+    "aa_10_application_sequence_flow": load_aa_10_application_sequence_flow,
+    "aa_11_product_capability_map":    load_aa_11_product_capability_map,
+    # ── Data Architecture (8) ─────────────────────────────────────────────────
+    "da_01_conceptual_data_model":     load_da_01_conceptual_data_model,
+    "da_02_logical_data_model":        load_da_02_logical_data_model,
+    "da_03_data_flow_diagram":         load_da_03_data_flow_diagram,
+    "da_04_data_domain_map":           load_da_04_data_domain_map,
+    "da_05_data_governance_framework": load_da_05_data_governance_framework,
+    "da_06_master_data_lifecycle":     load_da_06_master_data_lifecycle,
+    "da_07_data_lineage":              load_da_07_data_lineage,
+    "da_08_data_catalog_structure":    load_da_08_data_catalog_structure,
+    # ── Technology Architecture (9) ───────────────────────────────────────────
+    "ta_01_infrastructure_topology":   load_ta_01_infrastructure_topology,
+    "ta_02_deployment_architecture":   load_ta_02_deployment_architecture,
+    "ta_03_network_zoning":            load_ta_03_network_zoning,
+    "ta_04_cloud_architecture":        load_ta_04_cloud_architecture,
+    "ta_05_container_orchestration":   load_ta_05_container_orchestration,
+    "ta_06_security_architecture":     load_ta_06_security_architecture,
+    "ta_07_monitoring_observability":  load_ta_07_monitoring_observability,
+    "ta_08_disaster_recovery":         load_ta_08_disaster_recovery,
+    "ta_09_platform_capability_map":   load_ta_09_platform_capability_map,
+}

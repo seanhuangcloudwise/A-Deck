@@ -1,0 +1,76 @@
+# Cloudwise Dark Green Master Template Specification
+#
+# Source: dark-cloudwise-green1.pptx
+# Date: 2026-03-26
+
+template:
+  name: "Cloudwise Dark Green"
+  file: "cloudwise-master.pptx"
+  aspect_ratio: "16:9"
+  slide_width_in: 13.333
+  slide_height_in: 7.5
+
+layout:
+  names:
+    cover: ["自定义版式", "标题幻灯片"]
+    content: ["主内容", "标题和内容", "内容"]
+    thanks: ["仅标题", "标题幻灯片"]
+  indices:
+    cover: 11
+    content: 0
+    thanks: 6
+
+safe_zone:
+  left_in: 0.3
+  right_in: 9.68
+  top_in: 0.75
+  bottom_in: 6.75
+  header_top_in: 0.12
+  header_height_in: 0.58
+  content_top_in: 1.08
+  flow_y_in: 2.1
+  list_y_in: 4.1
+
+typography:
+  font_scale: 1.0
+  min_font_size: 8.0
+  tokens:
+    title: 30
+    subtitle: 14
+    body: 11
+    label: 10
+    caption: 9
+    micro: 8
+
+infrastructure_colors:
+  mode: "dark"
+  palette:
+    # Primary green shades (accent1-6 from theme)
+    cyan:     [25, 167, 65]      # #19A741 accent1 — primary green
+    cyan_2:   [56, 181, 88]      # #38B558 accent2
+    cyan_3:   [92, 194, 120]     # #5CC278 accent3
+
+    dark:     [15, 20, 35]       # dark background base
+    text:     [240, 245, 250]    # light text on dark bg
+    gray:     [176, 188, 202]    # mid gray
+    mid_gray: [120, 134, 152]
+
+    light:    [31, 38, 56]       # dark card background
+    white:    [255, 255, 255]
+
+    line:     [68, 86, 112]
+    soft_blue:   [31, 59, 99]
+    soft_green:  [31, 72, 56]
+    soft_yellow: [78, 66, 29]
+
+    domain_bg:  [15, 20, 35]
+    brand_gray: [120, 134, 152]
+
+
+theme_colors:
+  accent1: "#19A741"   # primary green (darkest)
+  accent2: "#38B558"
+  accent3: "#5CC278"
+  accent4: "#84D198"
+  accent5: "#AADDB9"
+  accent6: "#CEE9D5"   # lightest green

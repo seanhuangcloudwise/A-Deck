@@ -1,0 +1,218 @@
+# Cloudwise Purple Light Master Template Specification
+# Version: 1.1
+# Updated: 2026-03-26 — placeholder coordinates extracted from source PPT
+
+template:
+  name: "Cloudwise Purple Light"
+  file: "颜色0326.pptx"
+  aspect_ratio: "16:9"
+  slide_width_in: 10.0
+  slide_height_in: 5.6257   # exact: 5144135 / 914400 EMU
+
+layout:
+  names:
+    cover:   ["标题幻灯片"]
+    section: ["节标题"]          # decorative section-break slide with side-panel
+    content: ["标题和内容", "主内容", "两栏内容"]
+    blank:   ["空白"]
+    thanks:  ["末尾幻灯片"]
+  indices:
+    cover:        1   # 标题幻灯片
+    section:      0   # 节标题 (side-panel title, l=3.40)
+    content:      2   # 标题和内容 (standard: title l=0.499 t=0.499, body l=0.499 t=1.223)
+    content_bare: 9   # 内容 (body-only full-width: l=0.499 t=0.635 w=9.0 h=4.498)
+    two_col:      3   # 两栏内容
+    blank:        6   # 空白
+    thanks:      10   # 末尾幻灯片
+
+safe_zone:
+  # 基于 主内容(index 0) + 内容(index 9) 占位符实测坐标
+  left_in:        0.30     # left margin (内容 placeholder left = 0.499, use 0.3 for custom shapes)
+  right_in:       9.50     # 内容 placeholder right edge = 0.499 + 9.0 = 9.499
+  top_in:         0.635    # 内容(index 9) placeholder top
+  bottom_in:      5.13     # 内容(index 9) placeholder bottom = 0.635 + 4.498
+  footer_top_in:  5.18     # footer/page-number start
+
+  # 主内容(index 0) header zone
+  header_top_in:    0.0922   # title placeholder top
+  header_height_in: 0.3725   # title placeholder height
+  subtitle_top_in:  0.4829   # subtitle placeholder top
+  subtitle_height_in: 0.2355 # subtitle placeholder height
+
+  # Content body safe zone (below title+subtitle in 主内容 layout)
+  content_top_in:   0.72     # after subtitle ends (0.4829 + 0.2355 + small gap)
+
+  # Left sidebar width in 主内容 layout (decorative, not for body content)
+  sidebar_end_in:   3.4042   # title/subtitle start at x=3.4, left of this is decorative
+
+  # Predefined flow/list Y positions (scaled for 5.63" height, from 7.5" base * 5.63/7.5)
+  flow_y_in:        1.4      # standard horizontal flow Y
+  list_y_in:        2.8      # standard list start Y
+
+typography:
+  font_scale: 1.0
+  min_font_size: 8.0
+  tokens:
+    display: 28
+    title: 24
+    h2: 20
+    h3: 16
+    subtitle: 12
+    body: 12
+    label: 10
+    caption: 9
+    micro: 8
+
+infrastructure_colors:
+  mode: "light"
+  palette:
+    text_light:   [212, 212, 212]      # #D4D4D4
+    text_dark:    [30, 41, 59]         # #1E293B
+    bg_light:     [245, 245, 245]      # #F5F5F5
+    bg_dark:      [45, 45, 45]         # #2D2D2D
+    shape_1:      [124, 58, 237]       # #7C3AED
+    shape_2:      [216, 191, 216]      # #D8BFD8
+    shape_3:      [240, 245, 249]      # #F0F5F9
+    shape_4:      [180, 199, 231]      # #B4C7E7
+    shape_5:      [91, 155, 213]       # #5B9BD5
+    shape_6:      [0, 82, 204]         # #0052CC
+
+    # Compatibility aliases used by existing loaders
+    cyan:         [124, 58, 237]
+    cyan_2:       [216, 191, 216]
+    cyan_3:       [240, 245, 249]
+    dark:         [30, 41, 59]
+    text:         [30, 41, 59]
+    gray:         [212, 212, 212]
+    mid_gray:     [180, 199, 231]
+    light:        [245, 245, 245]
+    white:        [255, 255, 255]
+    line:         [226, 232, 240]      # #E2E8F0 light gray (default border/line)
+    soft_blue:    [240, 245, 249]
+    soft_green:   [216, 191, 216]
+    soft_yellow:  [245, 245, 245]
+    domain_bg:    [45, 45, 45]
+    brand_gray:   [91, 155, 213]
+
+# Default shape/line styles
+# Used by loaders as the baseline for borders and connector lines
+default_styles:
+  line_color:   [226, 232, 240]   # #E2E8F0 — light gray, maps to palette key 'line'
+  border_color: [226, 232, 240]   # same as line_color
+  border_width_pt: 0.75
+  border_none_for_fill_shapes: true   # shapes with solid fill get no border by default
+
+theme_colors:
+  # Values now embedded in cloudwise-master.pptx theme1.xml (patched 2026-03-26)
+  dk1:      "#1E293B"   # 文字颜色-深
+  lt1:      "#F5F5F5"   # 背景颜色-浅
+  dk2:      "#2D2D2D"   # 背景颜色-深
+  lt2:      "#D4D4D4"   # 文字颜色-浅
+  accent1:  "#7C3AED"   # 图形颜色-Primary purple
+  accent2:  "#D8BFD8"   # 图形颜色2
+  accent3:  "#F0F5F9"   # 图形颜色3
+  accent4:  "#B4C7E7"   # 图形颜色4
+  accent5:  "#5B9BD5"   # 图形颜色5
+  accent6:  "#0052CC"   # 图形颜色6
+  hlink:    "#0026E5"
+  folHlink: "#7E1FAD"
+
+# Full layout inventory (extracted 2026-03-26, all coordinates in inches)
+layout_inventory:
+  - index: 0
+    name: "节标题"
+    note: "side-panel section break; title at l=3.40 t=0.09"
+    placeholders:
+      title:    {idx: 0, l: 3.4042, t: 0.0922, w: 6.3714, h: 0.3725}
+      subtitle: {idx: 1, l: 3.3151, t: 0.4829, w: 6.3719, h: 0.2355}
+
+  - index: 1
+    name: "标题幻灯片"
+    note: "cover; large center title + subtitle"
+    placeholders:
+      title:    {idx: 0, l: 0.9833, t: 0.7501, w: 8.0374, h: 2.1086}
+      subtitle: {idx: 1, l: 0.9833, t: 2.9208, w: 8.0374, h: 1.2079}
+
+  - index: 2
+    name: "标题和内容"
+    note: "primary content layout; title + body full-width"
+    placeholders:
+      title: {idx: 0, l: 0.499, t: 0.4991, w: 8.997, h: 0.5788}
+      body:  {idx: 1, l: 0.499, t: 1.2227, w: 8.997, h: 3.9042}
+
+  - index: 3
+    name: "两栏内容"
+    placeholders:
+      title:  {idx: 0, l: 0.499,  t: 0.4991, w: 8.997,  h: 0.5788}
+      left:   {idx: 1, l: 0.499,  t: 1.2315, w: 4.2461, h: 3.8954}
+      right:  {idx: 2, l: 5.2589, t: 1.2315, w: 4.2461, h: 3.8954}
+
+  - index: 4
+    name: "比较"
+    placeholders:
+      title:        {idx: 0, l: 0.499,  t: 0.4991, w: 8.997,  h: 0.5788}
+      left_header:  {idx: 1, l: 0.499,  t: 1.1518, w: 4.3819, h: 0.3396}
+      left_body:    {idx: 2, l: 0.499,  t: 1.5209, w: 4.3819, h: 3.6059}
+      right_header: {idx: 3, l: 5.1146, t: 1.1518, w: 4.3819, h: 0.3396}
+      right_body:   {idx: 4, l: 5.1146, t: 1.5209, w: 4.3819, h: 3.6059}
+
+  - index: 5
+    name: "仅标题"
+    placeholders:
+      title: {idx: 0, l: 0.499, t: 0.4991, w: 8.997, h: 0.5788}
+
+  - index: 6
+    name: "空白"
+    note: "no content placeholders"
+
+  - index: 7
+    name: "图片与标题"
+    placeholders:
+      title:   {idx: 0, l: 0.499,  t: 0.4991, w: 8.997,  h: 0.5788}
+      picture: {idx: 1, l: 0.499,  t: 1.2758, w: 4.2922, h: 3.7802}
+      text:    {idx: 2, l: 5.2087, t: 1.2758, w: 4.2874, h: 3.7802}
+
+  - index: 8
+    name: "竖排标题与文本"
+    placeholders:
+      title: {idx: 0, l: 8.3947, t: 0.7501, w: 0.8563, h: 4.1257}
+      body:  {idx: 1, l: 0.75,   t: 0.7501, w: 7.5207, h: 4.1257}
+
+  - index: 9
+    name: "内容"
+    note: "body-only, no header; full-width content area"
+    placeholders:
+      body: {idx: 13, l: 0.499, t: 0.635, w: 9.0, h: 4.4978}
+
+  - index: 10
+    name: "末尾幻灯片"
+    placeholders:
+      title:    {idx: 0,  l: 0.9833, t: 1.9669, w: 8.0374, h: 0.9067}
+      subtitle: {idx: 13, l: 0.9833, t: 2.9208, w: 8.0374, h: 0.4135}
+
+maturity_status:
+  GA:
+    fill: "shape_1"
+    border: "shape_1"
+    text: "white"
+    dash: false
+  Managed:
+    fill: "shape_2"
+    border: "shape_1"
+    text: "text_dark"
+    dash: false
+  Beta:
+    fill: "shape_3"
+    border: "shape_4"
+    text: "text_dark"
+    dash: false
+  Alpha:
+    fill: "shape_5"
+    border: "shape_5"
+    text: "white"
+    dash: false
+  Planned:
+    fill: "bg_light"
+    border: "shape_6"
+    text: "shape_6"
+    dash: true

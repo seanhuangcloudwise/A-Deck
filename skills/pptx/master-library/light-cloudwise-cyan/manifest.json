@@ -1,0 +1,40 @@
+{
+  "masterId": "light-cloudwise-cyan",
+  "displayName": "cloudwise 2025",
+  "sceneSlug": "product-brochure",
+  "sourceFile": "skills/pptx/master-library/light-cloudwise-cyan/cloudwise-master.pptx",
+  "addedAt": "2026-03-22",
+  "layoutCount": 12,
+  "masterCount": 1,
+  "fonts": [
+    "Source Han Sans CN Normal",
+    "微软雅黑"
+  ],
+  "topColors": [
+    "A5A7AA",
+    "00CCD7",
+    "2F2F2F",
+    "53E3EB",
+    "44546A",
+    "E7E6E6",
+    "67E0E6",
+    "23C1E0",
+    "55CED4",
+    "5B9BD5"
+  ],
+  "layoutNames": [
+    "slideLayout1",
+    "slideLayout10",
+    "slideLayout11",
+    "slideLayout12",
+    "slideLayout2",
+    "slideLayout3",
+    "slideLayout4",
+    "slideLayout5",
+    "slideLayout6",
+    "slideLayout7",
+    "slideLayout8",
+    "slideLayout9"
+  ],
+  "notes": "Master assets refreshed from self-intro output PPT on 2026-03-24"
+}

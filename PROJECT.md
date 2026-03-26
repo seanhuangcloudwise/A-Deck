@@ -23,9 +23,9 @@ A-Deck/
 │   └── pptx/
 │       ├── SKILL.md
 │       ├── scripts/
-│       ├── knowledge/
 │       ├── master-library/
-│       └── togaf-architecture/
+│       ├── togaf-architecture/
+│       └── XSean/
 ├── projects/
 │   ├── capability-map-test/
 │   ├── service-interaction-test/
@@ -52,7 +52,7 @@ Detailed functional contracts are maintained in [docs/ppt-maker-agent-spec.md](d
 
 - Keep [skills/pptx/SKILL.md](skills/pptx/SKILL.md) concise as an operational quick reference.
 - Maintain full product requirement and functional descriptions in [docs/ppt-maker-agent-spec.md](docs/ppt-maker-agent-spec.md).
-- Use [skills/pptx/knowledge/_index.md](skills/pptx/knowledge/_index.md) as the naming reference for knowledge scenes.
+- Style conventions and diagram specs live in `skills/pptx/XSean/` (XSean domain) and loader directories.
 
 ## QA Baseline / QA基线
 

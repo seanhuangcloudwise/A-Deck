@@ -147,64 +147,6 @@ pdftoppm -jpeg -r 150 -f 2 -l 4 output.pdf slide-fixed
 | `scripts/add_slide.py` | `python scripts/add_slide.py unpacked/ slide2.xml` |
 | `scripts/thumbnail.py` | `python scripts/thumbnail.py input.pptx [prefix] [--cols N]` |
 
-## Knowledge Base
-
-Personal style knowledge is stored in `skills/pptx/knowledge/` and organized by scene.
-
-### Scene Management
-
-```bash
-# View registered scenes
-cat skills/pptx/knowledge/_index.md
-
-# View style preferences for a scene
-cat skills/pptx/knowledge/product-roadmap/style-profile.md
-
-# View saved slide structure templates for a scene
-cat skills/pptx/knowledge/product-roadmap/slide-structures.md
-
-# View session history for a scene
-cat skills/pptx/knowledge/product-roadmap/session-log.md
-```
-
-### Add a New Scene
-
-```bash
-# 1. Register in index
-#    Edit skills/pptx/knowledge/_index.md — add a row to the Registered Scenes table
-
-# 2. Create scene directory and files
-mkdir skills/pptx/knowledge/{your-slug}
-# Copy the three file templates from skills/pptx/knowledge/_schema.md
-```
-
-### Trigger Knowledge Learning (Workflow 5)
-
-```
-# In the PPT Maker agent chat, attach a .pptx file and say:
-"学习这个" / "从这个PPT提取风格" / "learn from this"
-
-# Agent will:
-# 1. Ask you which scene this belongs to
-# 2. Extract 6 dimensions (palette, typography, structure, style, density, audience)
-# 3. Show a summary table for your confirmation
-# 4. On confirmation: write to the scene's knowledge files
-```
-
-### Trigger Session Save (after PPT generation)
-
-```
-# After PPT Maker finishes and passes QA, it will show a Session Summary.
-# Reply "保存" to persist this session's style choices to the knowledge base.
-# The agent updates: style-profile.md (palette/font counts), 
-#   slide-structures.md (template usage), session-log.md (new row)
-```
-
-### Knowledge File Schema
-
-See `skills/pptx/knowledge/_schema.md` for the exact format specification
-used when Agent reads or writes knowledge files.
-
 ## Master Library
 
 Reusable masters are stored in `skills/pptx/master-library/`.

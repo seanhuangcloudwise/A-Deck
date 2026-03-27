@@ -72,15 +72,33 @@ def _event(slide, x, y, start=True):
     c.line.color.rgb = C["domain_bg"] if start else C["dark"]
 
 
-def _link(slide, x1, y1, x2, y2, label="", dashed=False, color=None):
-    conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, _i(x1), _i(y1), _i(x2), _i(y2))
-    conn.line.color.rgb = color or C["dark"]
-    conn.line.width = Pt(1.3)
-    if dashed:
-        conn.line.dash_style = 4
+def _link(slide, x1, y1, x2, y2, label="", dashed=False, color=None, style="auto"):
+    line_color = color or C["dark"]
+
+    def _segment(sx, sy, ex, ey):
+        conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, _i(sx), _i(sy), _i(ex), _i(ey))
+        conn.line.color.rgb = line_color
+        conn.line.width = Pt(1.3)
+        if dashed:
+            conn.line.dash_style = 4
+        return conn
+
+    is_elbow = style == "elbow" or (style == "auto" and _i(y1) != _i(y2))
+    if is_elbow:
+        bend_x = x1 + (x2 - x1) * 0.5
+        _segment(x1, y1, bend_x, y1)
+        _segment(bend_x, y1, bend_x, y2)
+        conn = _segment(bend_x, y2, x2, y2)
+        if label:
+            textbox(slide, bend_x + Inches(0.03), min(y1, y2) - Inches(0.12), Inches(0.9), Inches(0.12),
+                    label, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
+        return conn
+
+    conn = _segment(x1, y1, x2, y2)
     if label:
-        textbox(slide, x1 + Inches(0.03), y1 - Inches(0.12), Inches(0.9), Inches(0.12),
+        textbox(slide, min(x1, x2) + Inches(0.03), min(y1, y2) - Inches(0.12), Inches(0.9), Inches(0.12),
                 label, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
+    return conn
 
 
 def _add_content_slide(ctx):
@@ -89,7 +107,7 @@ def _add_content_slide(ctx):
     return ctx.prs.slides.add_slide(layout)
 
 
-def _subtitle(slide, text):
+def _subtitle(ctx, slide, text):
     subtitle_ph = next(
         (s for s in slide.shapes
          if getattr(s, "is_placeholder", False) and s.placeholder_format.idx == 1),
@@ -100,19 +118,29 @@ def _subtitle(slide, text):
         tf.clear()
         tf.paragraphs[0].text = text
         return
-    textbox(slide, SAFE_LEFT + Inches(0.04), Inches(0.68), Inches(8.8), Inches(0.22),
+    textbox(slide, ctx.safe_left + Inches(0.04), Inches(0.68), ctx.safe_width - Inches(0.08), Inches(0.22),
             text, size=10, color=C["brand_gray"])
 
 
-def _footer_meta(slide, text):
-    textbox(slide, SAFE_LEFT, SAFE_BOTTOM + Inches(0.02), SAFE_WIDTH, Inches(0.18),
+def _footer_meta(ctx, slide, text):
+    textbox(slide, ctx.safe_left, ctx.safe_bottom + Inches(0.02), ctx.safe_width, Inches(0.18),
             text, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
+
+
+def _step_positions(left, width, count, step_w, start_pad=1.36, end_pad=1.12, min_gap=0.10):
+    body_left = left + Inches(start_pad)
+    body_right = left + width - Inches(end_pad)
+    if count <= 1:
+        return [body_left]
+    gap = (body_right - body_left - step_w * count) / (count - 1)
+    gap = max(gap, Inches(min_gap))
+    return [body_left + i * (step_w + gap) for i in range(count)]
 
 
 def slide_l0(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "PPT Maker Agent — Business Process Architecture")
-    _subtitle(slide, "Layer 0 (Value Chain): End-to-End Process Landscape")
+    _subtitle(ctx, slide, "Layer 0 (Value Chain): End-to-End Process Landscape")
 
     phases = [
         ("P0", "需求受理", "需求入口与范围确认"),
@@ -123,11 +151,11 @@ def slide_l0(ctx):
         ("P5", "发布与学习", "交付归档与经验回流"),
     ]
 
-    x = SAFE_LEFT + Inches(0.2)
-    y = Inches(1.72)
-    w = Inches(1.45)
-    h = Inches(1.05)
+    x = ctx.safe_left + Inches(0.2)
+    y = ctx.content_top + Inches(0.64)
     gap = Inches(0.12)
+    w = (ctx.safe_width - Inches(0.4) - gap * 5) / 6
+    h = Inches(1.05)
 
     for i, (pid, name, desc) in enumerate(phases):
         fill = C["cyan"] if i in (2, 3, 4) else C["cyan_2"]
@@ -143,14 +171,13 @@ def slide_l0(ctx):
             textbox(slide, x + i * (w + gap) + w + Inches(0.01), y + Inches(0.42), Inches(0.1), Inches(0.2),
                     "▶", size=12, color=C["cyan"], align=PP_ALIGN.CENTER)
 
-    # layer decomposition panel — fit within SAFE_BOTTOM (6.75")
-    panel_top = Inches(3.18)
-    panel_h = SAFE_BOTTOM - panel_top - Inches(0.08)
-    panel = rrect(slide, SAFE_LEFT + Inches(0.22), panel_top, SAFE_WIDTH - Inches(0.44), panel_h,
+    panel_top = y + h + Inches(0.41)
+    panel_h = ctx.safe_bottom - panel_top - Inches(0.08)
+    panel = rrect(slide, ctx.safe_left + Inches(0.22), panel_top, ctx.safe_width - Inches(0.44), panel_h,
                   C["light"], line=C["line"], adj=2200)
     panel.line.width = Pt(1.0)
 
-    textbox(slide, SAFE_LEFT + Inches(0.38), Inches(3.34), Inches(2.8), Inches(0.24),
+    textbox(slide, ctx.safe_left + Inches(0.38), panel_top + Inches(0.16), Inches(2.8), Inches(0.24),
             "Layer Decomposition", size=11, bold=True, color=C["dark"])
 
     details = [
@@ -160,28 +187,28 @@ def slide_l0(ctx):
         "Owner: Product Ops  |  Version: v2.0  |  Baseline SLA: T+1 day",
     ]
     for i, t in enumerate(details):
-        textbox(slide, SAFE_LEFT + Inches(0.42), Inches(3.72 + i * 0.44), SAFE_WIDTH - Inches(0.9), Inches(0.3),
+        textbox(slide, ctx.safe_left + Inches(0.42), panel_top + Inches(0.54 + i * 0.44), ctx.safe_width - Inches(0.9), Inches(0.3),
                 f"• {t}", size=9, color=C["gray"])
 
-    _footer_meta(slide, "Scope: PPT Maker Agent end-to-end business process map · Cloudwise Master")
+    _footer_meta(ctx, slide, "Scope: PPT Maker Agent end-to-end business process map · Cloudwise Master")
 
 
 def slide_l1_intake(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L1 Process P0-P2 — Intake & Planning")
-    _subtitle(slide, "Layer 1: 业务受理 -> 分析澄清 -> 提纲规划")
+    _subtitle(ctx, slide, "Layer 1: 业务受理 -> 分析澄清 -> 提纲规划")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.47)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "业务方")
     _lane(slide, left, top + lane_h * 1, width, lane_h, "产品经理")
     _lane(slide, left, top + lane_h * 2, width, lane_h, "架构师")
 
-    x = [left + Inches(v) for v in (1.36, 2.54, 3.72, 4.90, 6.08, 7.26)]
     sw = Inches(1.0)
+    x = _step_positions(left, width, 6, sw)
     sh = Inches(0.58)
     y0 = top + Inches(0.44)
     y1 = top + lane_h + Inches(0.44)
@@ -203,25 +230,25 @@ def slide_l1_intake(ctx):
     _link(slide, x[4] + sw, y1 + Inches(0.29), x[5], y1 + Inches(0.29))
     _link(slide, x[5] + sw, y1 + Inches(0.29), x[5] + Inches(1.12), y1 + Inches(0.29))
 
-    _footer_meta(slide, "Owner: Product Manager · Output: Frozen Outline + Scope Baseline")
+    _footer_meta(ctx, slide, "Owner: Product Manager · Output: Frozen Outline + Scope Baseline")
 
 
 def slide_l1_knowledge(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L1 Process P1 — Knowledge & Template Preparation")
-    _subtitle(slide, "Layer 1: 资料清洗 -> 母版选择 -> 知识注入")
+    _subtitle(ctx, slide, "Layer 1: 资料清洗 -> 母版选择 -> 知识注入")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.47)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "知识运营")
     _lane(slide, left, top + lane_h * 1, width, lane_h, "设计规范")
     _lane(slide, left, top + lane_h * 2, width, lane_h, "平台服务")
 
-    x = [left + Inches(v) for v in (1.36, 2.54, 3.72, 4.90, 6.08, 7.26)]
     sw = Inches(1.0)
+    x = _step_positions(left, width, 6, sw)
     sh = Inches(0.58)
     y0 = top + Inches(0.44)
     y1 = top + lane_h + Inches(0.44)
@@ -243,25 +270,25 @@ def slide_l1_knowledge(ctx):
     _link(slide, x[4] + sw, y2 + Inches(0.29), x[5], y2 + Inches(0.29))
     _link(slide, x[5] + sw, y2 + Inches(0.29), x[5] + Inches(1.12), y2 + Inches(0.29))
 
-    _footer_meta(slide, "Owner: Knowledge Ops · Output: Ready Context + Qualified Master")
+    _footer_meta(ctx, slide, "Owner: Knowledge Ops · Output: Ready Context + Qualified Master")
 
 
 def slide_l1_generation(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L1 Process P3 — Content Generation & Diagram Rendering")
-    _subtitle(slide, "Layer 1: 文本生成 -> 架构制图 -> 页面编排")
+    _subtitle(ctx, slide, "Layer 1: 文本生成 -> 架构制图 -> 页面编排")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.47)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "生成引擎")
     _lane(slide, left, top + lane_h * 1, width, lane_h, "架构制图")
     _lane(slide, left, top + lane_h * 2, width, lane_h, "版式编排")
 
-    x = [left + Inches(v) for v in (1.36, 2.54, 3.72, 4.90, 6.08, 7.26)]
     sw = Inches(1.0)
+    x = _step_positions(left, width, 6, sw)
     sh = Inches(0.58)
     y0 = top + Inches(0.44)
     y1 = top + lane_h + Inches(0.44)
@@ -283,25 +310,25 @@ def slide_l1_generation(ctx):
     _link(slide, x[4] + sw, y2 + Inches(0.29), x[5], y2 + Inches(0.29))
     _link(slide, x[5] + sw, y2 + Inches(0.29), x[5] + Inches(1.12), y2 + Inches(0.29))
 
-    _footer_meta(slide, "Owner: Generation Service · Output: Draft Deck + Rendered Architecture Slides")
+    _footer_meta(ctx, slide, "Owner: Generation Service · Output: Draft Deck + Rendered Architecture Slides")
 
 
 def slide_l1_delivery(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L1 Process P4-P5 — QA, Review, Delivery & Learning")
-    _subtitle(slide, "Layer 1: 质量门禁 -> 人审反馈 -> 发布归档 -> 经验回流")
+    _subtitle(ctx, slide, "Layer 1: 质量门禁 -> 人审反馈 -> 发布归档 -> 经验回流")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.47)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "质量保障")
     _lane(slide, left, top + lane_h * 1, width, lane_h, "评审协作")
     _lane(slide, left, top + lane_h * 2, width, lane_h, "交付运营")
 
-    x = [left + Inches(v) for v in (1.36, 2.54, 3.72, 4.90, 6.08, 7.26)]
     sw = Inches(1.0)
+    x = _step_positions(left, width, 6, sw)
     sh = Inches(0.58)
     y0 = top + Inches(0.44)
     y1 = top + lane_h + Inches(0.44)
@@ -323,17 +350,17 @@ def slide_l1_delivery(ctx):
     _link(slide, x[4] + sw, y2 + Inches(0.29), x[5], y2 + Inches(0.29))
     _link(slide, x[5] + sw, y2 + Inches(0.29), x[5] + Inches(1.12), y2 + Inches(0.29))
 
-    _footer_meta(slide, "Owner: QA + Delivery Ops · Output: Published Deck + Feedback Signals")
+    _footer_meta(ctx, slide, "Owner: QA + Delivery Ops · Output: Published Deck + Feedback Signals")
 
 
 def slide_l2_intake(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L2 Detail A — Intake to Scope Freeze")
-    _subtitle(slide, "Detailed SOP with branch and exception (Phase P0-P2)")
+    _subtitle(ctx, slide, "Detailed SOP with branch and exception (Phase P0-P2)")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.38)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "业务方")
@@ -341,14 +368,8 @@ def slide_l2_intake(ctx):
     _lane(slide, left, top + lane_h * 2, width, lane_h, "架构师")
     _lane(slide, left, top + lane_h * 3, width, lane_h, "系统")
 
-    x0 = left + Inches(1.35)
-    x1 = left + Inches(2.45)
-    x2 = left + Inches(3.55)
-    x3 = left + Inches(4.65)
-    x4 = left + Inches(5.75)
-    x5 = left + Inches(6.85)
-    x6 = left + Inches(7.95)
     sw = Inches(0.92)
+    x0, x1, x2, x3, x4, x5, x6 = _step_positions(left, width, 7, sw, start_pad=1.35, end_pad=1.02)
     sh = Inches(0.56)
 
     y_biz = top + Inches(0.41)
@@ -381,17 +402,17 @@ def slide_l2_intake(ctx):
     _link(slide, x2 + sw, y_arch + Inches(0.28), x2 + sw + Inches(0.38), y_arch + Inches(0.28),
           label="Exception", dashed=True, color=C["brand_gray"])
 
-    _footer_meta(slide, "SLA: Intake <= 1 day · Exception path requires manual supplement")
+    _footer_meta(ctx, slide, "SLA: Intake <= 1 day · Exception path requires manual supplement")
 
 
 def slide_l2_generation(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L2 Detail B — Draft Generation and Diagram Rendering")
-    _subtitle(slide, "Detailed SOP with quality branch (Phase P3)")
+    _subtitle(ctx, slide, "Detailed SOP with quality branch (Phase P3)")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.38)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "生成引擎")
@@ -399,8 +420,8 @@ def slide_l2_generation(ctx):
     _lane(slide, left, top + lane_h * 2, width, lane_h, "版式引擎")
     _lane(slide, left, top + lane_h * 3, width, lane_h, "质量门禁")
 
-    x = [left + Inches(v) for v in (1.35, 2.42, 3.49, 4.56, 5.63, 6.70, 7.77)]
     sw = Inches(0.9)
+    x = _step_positions(left, width, 7, sw, start_pad=1.35, end_pad=1.72)
     sh = Inches(0.56)
     y0 = top + Inches(0.41)
     y1 = top + lane_h + Inches(0.41)
@@ -433,17 +454,17 @@ def slide_l2_generation(ctx):
     _link(slide, x[6] + Inches(0.26), y3 + Inches(0.50), x[4] + Inches(0.45), y1 + Inches(0.02),
           label="No", dashed=True, color=C["brand_gray"])
 
-    _footer_meta(slide, "Critical Path SLA: <= 10 min for auto-generation")
+    _footer_meta(ctx, slide, "Critical Path SLA: <= 10 min for auto-generation")
 
 
 def slide_l2_delivery(ctx):
     slide = _add_content_slide(ctx)
     header(slide, "L2 Detail C — QA Review, Publish and Learning Loop")
-    _subtitle(slide, "Detailed SOP with approval gate and feedback loop (Phase P4-P5)")
+    _subtitle(ctx, slide, "Detailed SOP with approval gate and feedback loop (Phase P4-P5)")
 
-    left = SAFE_LEFT
-    top = Inches(1.08)
-    width = SAFE_WIDTH
+    left = ctx.safe_left
+    top = ctx.content_top
+    width = ctx.safe_width
     lane_h = Inches(1.38)
 
     _lane(slide, left, top + lane_h * 0, width, lane_h, "质量保障")
@@ -451,8 +472,8 @@ def slide_l2_delivery(ctx):
     _lane(slide, left, top + lane_h * 2, width, lane_h, "交付运营")
     _lane(slide, left, top + lane_h * 3, width, lane_h, "学习系统")
 
-    x = [left + Inches(v) for v in (1.35, 2.45, 3.55, 4.65, 5.75, 6.85, 7.95)]
     sw = Inches(0.9)
+    x = _step_positions(left, width, 7, sw, start_pad=1.35, end_pad=1.02)
     sh = Inches(0.56)
     y0 = top + Inches(0.41)
     y1 = top + lane_h + Inches(0.41)
@@ -486,37 +507,37 @@ def slide_l2_delivery(ctx):
     _link(slide, x[6] + Inches(0.45), y3 + Inches(0.56), x[0], y0 + Inches(0.56),
           label="feedback", dashed=True, color=C["brand_gray"])
 
-    _footer_meta(slide, "Approval Gate + Feedback Loop closes continuous improvement cycle")
+    _footer_meta(ctx, slide, "Approval Gate + Feedback Loop closes continuous improvement cycle")
 
 
 def slide_cover(ctx):
     slide = ctx.add_cover_slide()
-    textbox(slide, Inches(0.72), Inches(1.26), Inches(12.11), Inches(1.00),
+    textbox(slide, ctx.safe_left, Inches(1.26), ctx.safe_width, Inches(1.00),
             "A-Deck", size=36, bold=True, color=C["cyan"], align=PP_ALIGN.CENTER)
-    textbox(slide, Inches(0.80), Inches(2.42), Inches(12.03), Inches(0.70),
+    textbox(slide, ctx.safe_left, Inches(2.42), ctx.safe_width, Inches(0.70),
             "业务流程架构",
             size=26, bold=True, color=C["dark"], align=PP_ALIGN.CENTER)
-    textbox(slide, Inches(0.96), Inches(3.30), Inches(11.76), Inches(0.80),
+    textbox(slide, ctx.safe_left + Inches(0.06), Inches(3.30), ctx.safe_width - Inches(0.12), Inches(0.80),
             "知识驱动 · 母版继承 · 端到端自动化",
             size=18, color=C["gray"], align=PP_ALIGN.CENTER)
-    textbox(slide, Inches(1.09), Inches(4.80), Inches(11.49), Inches(0.45),
+    textbox(slide, ctx.safe_left + Inches(0.12), Inches(4.80), ctx.safe_width - Inches(0.24), Inches(0.45),
             "BA-03 Layered Business Process  |  Cloudwise Master  |  Value Chain → Swimlane SOP",
             size=13, color=C["dark"], align=PP_ALIGN.CENTER)
-    textbox(slide, Inches(0.99), Inches(6.22), Inches(11.79), Inches(0.26),
+    textbox(slide, ctx.safe_left + Inches(0.08), Inches(6.22), ctx.safe_width - Inches(0.16), Inches(0.26),
             "From Requirement Intake to Delivery & Learning Loop",
             size=11, color=C["mid_gray"], align=PP_ALIGN.CENTER)
 
 
 def slide_thanks(ctx):
     slide = ctx.add_thanks_slide()
-    rrect(slide, SAFE_LEFT, Inches(3.84), SAFE_WIDTH, Inches(1.24), C["soft_blue"], line=C["line"])
-    textbox(slide, SAFE_LEFT + Inches(0.2), Inches(1.45), SAFE_WIDTH - Inches(0.24), Inches(0.9),
+    rrect(slide, ctx.safe_left, Inches(3.84), ctx.safe_width, Inches(1.24), C["soft_blue"], line=C["line"])
+    textbox(slide, ctx.safe_left + Inches(0.2), Inches(1.45), ctx.safe_width - Inches(0.24), Inches(0.9),
             "A-Deck — 让每一份 PPT 都达到交付标准",
             size=28, bold=True, color=C["dark"], align=PP_ALIGN.CENTER)
-    textbox(slide, SAFE_LEFT + Inches(0.42), Inches(2.55), SAFE_WIDTH - Inches(0.72), Inches(0.9),
+    textbox(slide, ctx.safe_left + Inches(0.42), Inches(2.55), ctx.safe_width - Inches(0.72), Inches(0.9),
             "从需求受理到知识回流，六大阶段全流程覆盖，每个环节可追溯、可复现。",
             size=16, color=C["gray"], align=PP_ALIGN.CENTER)
-    textbox(slide, SAFE_LEFT + Inches(0.36), Inches(4.22), SAFE_WIDTH - Inches(0.62), Inches(0.5),
+    textbox(slide, ctx.safe_left + Inches(0.36), Inches(4.22), ctx.safe_width - Inches(0.62), Inches(0.5),
             "关键路径 SLA ≤ 10 分钟自动生成  |  人工评审门禁  |  经验持续回流",
             size=15, bold=True, color=C["dark"], align=PP_ALIGN.CENTER)
     stats = [
@@ -524,9 +545,9 @@ def slide_thanks(ctx):
         ("Master Based", "品牌母版保证一致性"),
         ("QA First", "质量门禁贯穿始终"),
     ]
-    left = SAFE_LEFT
+    left = ctx.safe_left
     gap = Inches(0.18)
-    width = SAFE_WIDTH
+    width = ctx.safe_width
     box_w = (width - gap * 2) / 3
     for idx, (title, desc) in enumerate(stats):
         x = left + idx * (box_w + gap)

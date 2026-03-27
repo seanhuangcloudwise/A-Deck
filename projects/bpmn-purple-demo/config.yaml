@@ -1,0 +1,469 @@
+meta:
+  title: "BPMN 2.0 业务流程建模全景图"
+  subtitle: "企业数字化运营流程 · 十种图形全特性演示 · OMG BPMN 2.0.2"
+  back_title: "BPMN — 为清晰而生"
+
+# ══════════════════════════════════════════════════════════════════════
+# P1  协作与编排  (BP-01, BP-02)
+# ══════════════════════════════════════════════════════════════════════
+sections:
+  - title: "P1  协作与编排流程"
+    slides:
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-01  多池协作概览  ── 电商订单履行
+      # 特性: 两个Pool · 多任务 · 多条Message Flow (含往返)
+      # ─────────────────────────────────────────────────────────────────
+      bp_01_collaboration_overview:
+        title: "BP-01  电商订单多角色协作图"
+        subtitle: "买家 / 电商平台 / 物流商 三池协作 · Message Flow 双向传递"
+        content:
+          pools:
+            - id: buyer
+              name: "买家 Buyer"
+              tasks:
+                - { id: b_browse,  label: "浏览选品",    type: task }
+                - { id: b_order,   label: "提交订单",    type: send_task }
+                - { id: b_pay,     label: "在线支付",    type: task }
+                - { id: b_confirm, label: "确认收货",    type: task }
+                - { id: b_review,  label: "评价商品",    type: task }
+              flows:
+                - { from: b_browse, to: b_order }
+                - { from: b_order,  to: b_pay }
+                - { from: b_pay,    to: b_confirm }
+                - { from: b_confirm, to: b_review }
+
+            - id: platform
+              name: "电商平台 Platform"
+              tasks:
+                - { id: p_receive, label: "接收订单",   type: receive_task }
+                - { id: p_stock,   label: "库存校验",   type: service_task }
+                - { id: p_invoice, label: "生成发票",   type: script_task }
+                - { id: p_notify,  label: "发货通知",   type: send_task }
+                - { id: p_refund,  label: "退款处理",   type: task }
+              flows:
+                - { from: p_receive, to: p_stock }
+                - { from: p_stock,   to: p_invoice }
+                - { from: p_invoice, to: p_notify }
+
+            - id: logistics
+              name: "物流商 Logistics"
+              tasks:
+                - { id: l_pick,    label: "揽收包裹",   type: task }
+                - { id: l_transit, label: "干线运输",   type: task }
+                - { id: l_deliver, label: "末端派送",   type: task }
+                - { id: l_pod,     label: "签收凭证",   type: send_task }
+              flows:
+                - { from: l_pick,    to: l_transit }
+                - { from: l_transit, to: l_deliver }
+                - { from: l_deliver, to: l_pod }
+
+          message_flows:
+            - { from_pool: buyer,     from_task: b_order,   to_pool: platform,  to_task: p_receive,  label: "订单数据" }
+            - { from_pool: platform,  from_task: p_stock,   to_pool: buyer,     to_task: b_pay,      label: "支付请求" }
+            - { from_pool: platform,  from_task: p_notify,  to_pool: logistics, to_task: l_pick,     label: "发货指令" }
+            - { from_pool: logistics, from_task: l_pod,     to_pool: platform,  to_task: p_refund,   label: "签收确认" }
+            - { from_pool: platform,  from_task: p_refund,  to_pool: buyer,     to_task: b_confirm,  label: "到货通知" }
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-02  单池编排流程  ── IT 故障升级处理
+      # 特性: Start/End · Exclusive + Parallel Gateway · 多分支 · 回路
+      # ─────────────────────────────────────────────────────────────────
+      bp_02_orchestration_flow:
+        title: "BP-02  IT 故障升级编排流程"
+        subtitle: "含排他网关分支 · 并行网关合流 · 循环重试路径"
+        content:
+          nodes:
+            - { id: start,    type: start_event,        x_in: 0.2 }
+            - { id: triage,   label: "故障受理",         type: task,               x_in: 0.8 }
+            - { id: gw_sev,   type: exclusive_gateway,  x_in: 2.2 }
+            - { id: l1,       label: "L1 自动修复",      type: service_task,       x_in: 3.2,  y_branch: -1 }
+            - { id: l2,       label: "L2 人工介入",      type: user_task,          x_in: 3.2,  y_branch: 0 }
+            - { id: l3,       label: "L3 专家升级",      type: user_task,          x_in: 3.2,  y_branch: 1 }
+            - { id: gw_join,  type: exclusive_gateway,  x_in: 4.8 }
+            - { id: gw_par,   type: parallel_gateway,   x_in: 5.6 }
+            - { id: notify,   label: "通知用户",          type: send_task,          x_in: 6.6,  y_branch: -1 }
+            - { id: log,      label: "写入日志",          type: script_task,        x_in: 6.6,  y_branch: 0 }
+            - { id: kb,       label: "更新知识库",        type: task,               x_in: 6.6,  y_branch: 1 }
+            - { id: gw_sync,  type: parallel_gateway,   x_in: 8.0 }
+            - { id: close,    label: "工单关闭",          type: task,               x_in: 8.8 }
+            - { id: end,      type: end_event,           x_in: 9.5 }
+          flows:
+            - { from: start,   to: triage }
+            - { from: triage,  to: gw_sev }
+            - { from: gw_sev,  to: l1,      label: "低危" }
+            - { from: gw_sev,  to: l2,      label: "中危" }
+            - { from: gw_sev,  to: l3,      label: "高危" }
+            - { from: l1,      to: gw_join }
+            - { from: l2,      to: gw_join }
+            - { from: l3,      to: gw_join }
+            - { from: gw_join, to: gw_par }
+            - { from: gw_par,  to: notify }
+            - { from: gw_par,  to: log }
+            - { from: gw_par,  to: kb }
+            - { from: notify,  to: gw_sync }
+            - { from: log,     to: gw_sync }
+            - { from: kb,      to: gw_sync }
+            - { from: gw_sync, to: close }
+            - { from: close,   to: end }
+
+# ══════════════════════════════════════════════════════════════════════
+# P2  子流程与泳道  (BP-03, BP-04, BP-05)
+# ══════════════════════════════════════════════════════════════════════
+  - title: "P2  子流程与泳道"
+    slides:
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-03  扩展子流程  ── 供应链采购
+      # 特性: 扩展SP · Timer边界事件 · Error边界事件 · 内部多任务流
+      # ─────────────────────────────────────────────────────────────────
+      bp_03_expanded_subprocess:
+        title: "BP-03  供应链采购扩展子流程"
+        subtitle: "扩展型Sub-Process · Timer边界事件(超时催单) · Error边界事件(供应商异常)"
+        content:
+          parent_nodes:
+            - { id: start, type: start_event, x_in: 0.2 }
+            - { id: end,   type: end_event,   x_in: 8.4 }
+          subprocess:
+            id: procurement
+            label: "采购执行子流程"
+            x: 1.4
+            y: 1.2
+            w: 6.2
+            h: 2.4
+            internal_nodes:
+              - { id: rfq,      label: "发布询价单",   type: send_task,         x_in: 0.4 }
+              - { id: eval,     label: "评估报价",     type: user_task,         x_in: 1.6 }
+              - { id: gw_ok,    type: exclusive_gateway,                        x_in: 3.0 }
+              - { id: renegot,  label: "重新谈判",     type: user_task,         x_in: 4.0,  y_branch: 1 }
+              - { id: po,       label: "生成采购单",   type: script_task,       x_in: 4.0,  y_branch: 0 }
+              - { id: approve,  label: "财务审批",     type: user_task,         x_in: 5.2 }
+            internal_flows:
+              - { from: rfq,     to: eval }
+              - { from: eval,    to: gw_ok }
+              - { from: gw_ok,   to: renegot, label: "价格偏高" }
+              - { from: gw_ok,   to: po,      label: "价格合理" }
+              - { from: renegot, to: eval }
+              - { from: po,      to: approve }
+            boundary_events:
+              - { id: bev_timer, type: timer_boundary,  position: bottom }
+              - { id: bev_error, type: error_boundary,  position: bottom }
+          parent_flows:
+            - { from: start,       to: procurement }
+            - { from: procurement, to: end }
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-04  折叠子流程 + 调用活动  ── 新员工入职
+      # 特性: 3个Collapsed SP · 1个Call Activity · 排他网关
+      # ─────────────────────────────────────────────────────────────────
+      bp_04_collapsed_subprocess_call_activity:
+        title: "BP-04  新员工入职 L1 全览"
+        subtitle: "Collapsed Sub-Process(×3) · Call Activity(跨部门) · 排他网关路由"
+        content:
+          nodes:
+            - { id: start,   type: start_event,            x_in: 0.2 }
+            - { id: offer,   label: "Offer签署",            type: collapsed_subprocess, x_in: 0.9 }
+            - { id: gw_bg,   type: exclusive_gateway,       x_in: 2.5 }
+            - { id: bgcheck, label: "背景调查 [全局流程]",   type: call_activity,        x_in: 3.4 }
+            - { id: onboard, label: "IT入职配置",            type: collapsed_subprocess, x_in: 5.2 }
+            - { id: orient,  label: "岗前培训",              type: collapsed_subprocess, x_in: 6.8 }
+            - { id: gw_fin,  type: exclusive_gateway,       x_in: 8.0 }
+            - { id: end_ok,  type: end_event,               x_in: 8.8,  y_branch: 0 }
+          flows:
+            - { from: start,   to: offer }
+            - { from: offer,   to: gw_bg }
+            - { from: gw_bg,   to: bgcheck, label: "需背调" }
+            - { from: gw_bg,   to: onboard, label: "免背调" }
+            - { from: bgcheck, to: onboard }
+            - { from: onboard, to: orient }
+            - { from: orient,  to: gw_fin }
+            - { from: gw_fin,  to: end_ok,  label: "通过" }
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-05  嵌套泳道  ── 费用报销审批
+      # 特性: 嵌套Lane(Dept→员工/主管) · Finance Lane · 用户/服务/发送任务 · 网关
+      # ─────────────────────────────────────────────────────────────────
+      bp_05_lane_nested_lane_flow:
+        title: "BP-05  费用报销嵌套泳道"
+        subtitle: "嵌套Lane(部门→员工/主管) · Finance · User/Service/Send Task · 跨道流转"
+        content:
+          pool:
+            name: "费用报销流程"
+          lanes:
+            - id: dept
+              name: "业务部门"
+              nested_lanes:
+                - { id: emp,  name: "员工" }
+                - { id: mgr,  name: "直线经理" }
+            - id: finance
+              name: "财务部"
+              nested_lanes: []
+            - id: system
+              name: "系统 / ERP"
+              nested_lanes: []
+          nodes:
+            - { id: start,    type: start_event,        lane: emp,     x_in: 0.3 }
+            - { id: fill,     label: "填写费用单",       type: user_task,      lane: emp,     x_in: 1.1 }
+            - { id: upload,   label: "上传票据",         type: user_task,      lane: emp,     x_in: 2.4 }
+            - { id: mgr_rev,  label: "经理审核",         type: user_task,      lane: mgr,     x_in: 3.7 }
+            - { id: gw_mgr,   type: exclusive_gateway,                         lane: mgr,     x_in: 5.1 }
+            - { id: reject1,  label: "退回修改",         type: send_task,      lane: emp,     x_in: 5.8,  y_branch: 1 }
+            - { id: fin_chk,  label: "财务合规检查",     type: user_task,      lane: finance, x_in: 6.4 }
+            - { id: gw_fin,   type: exclusive_gateway,                         lane: finance, x_in: 7.6 }
+            - { id: approve,  label: "审批通过",         type: task,           lane: finance, x_in: 8.4,  y_branch: 0 }
+            - { id: auto_pay, label: "银行付款指令",     type: service_task,   lane: system,  x_in: 8.4,  y_branch: 0 }
+            - { id: notify,   label: "到账通知",         type: send_task,      lane: system,  x_in: 9.2 }
+            - { id: end,      type: end_event,                                 lane: system,  x_in: 9.8 }
+          flows:
+            - { from: start,   to: fill }
+            - { from: fill,    to: upload }
+            - { from: upload,  to: mgr_rev }
+            - { from: mgr_rev, to: gw_mgr }
+            - { from: gw_mgr,  to: reject1,  label: "不批准" }
+            - { from: gw_mgr,  to: fin_chk,  label: "批准" }
+            - { from: reject1, to: fill }
+            - { from: fin_chk, to: gw_fin }
+            - { from: gw_fin,  to: approve,  label: "合规" }
+            - { from: approve, to: auto_pay }
+            - { from: auto_pay, to: notify }
+            - { from: notify,  to: end }
+
+# ══════════════════════════════════════════════════════════════════════
+# P3  编排交互与对话  (BP-06, BP-07)
+# ══════════════════════════════════════════════════════════════════════
+  - title: "P3  编排交互与对话地图"
+    slides:
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-06  编舞交互  ── B2B 采购谈判
+      # 特性: 5个 Choreography Task · 不同发起方/响应方 · 全流程序列
+      # ─────────────────────────────────────────────────────────────────
+      bp_06_choreography_interaction:
+        title: "BP-06  B2B 采购谈判编舞图"
+        subtitle: "5步交互 · 买方/卖方/银行 三方参与 · 发起方高亮显示"
+        content:
+          choreography_tasks:
+            - { id: ct1, name: "询价 RFQ",       initiator: "买方 Buyer",   responder: "卖方 Seller" }
+            - { id: ct2, name: "报价 Quotation",  initiator: "卖方 Seller",  responder: "买方 Buyer" }
+            - { id: ct3, name: "下单 PO",         initiator: "买方 Buyer",   responder: "卖方 Seller" }
+            - { id: ct4, name: "发货通知 ASN",    initiator: "卖方 Seller",  responder: "买方 Buyer" }
+            - { id: ct5, name: "付款指令 Payment", initiator: "买方 Buyer",   responder: "银行 Bank" }
+          flows:
+            - { from: start, to: ct1 }
+            - { from: ct1,   to: ct2 }
+            - { from: ct2,   to: ct3 }
+            - { from: ct3,   to: ct4 }
+            - { from: ct4,   to: ct5 }
+            - { from: ct5,   to: end }
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-07  对话地图  ── 保险理赔生态
+      # 特性: 5个参与方 · 普通/子对话/调用对话 · 辐射型连接
+      # ─────────────────────────────────────────────────────────────────
+      bp_07_conversation_map:
+        title: "BP-07  保险理赔对话地图"
+        subtitle: "5方参与 · 普通对话/子对话/调用对话三种类型 · 辐射型连接关系"
+        content:
+          participants:
+            - { id: insured,   name: "被保险人" }
+            - { id: insurer,   name: "保险公司" }
+            - { id: hospital,  name: "医院" }
+            - { id: auditor,   name: "核损中心" }
+            - { id: bank,      name: "付款银行" }
+          conversations:
+            - id: c_claim
+              name: "理赔申请"
+              type: conversation
+              connected_participants: [insured, insurer]
+            - id: c_medical
+              name: "医疗核实"
+              type: conversation
+              connected_participants: [insurer, hospital]
+            - id: c_audit
+              name: "深度核损"
+              type: sub_conversation
+              connected_participants: [insurer, auditor, hospital]
+            - id: c_payment
+              name: "赔付结算 [全局]"
+              type: call_conversation
+              connected_participants: [insurer, bank, insured]
+
+# ══════════════════════════════════════════════════════════════════════
+# P4  事件与网关模式  (BP-08)
+# ══════════════════════════════════════════════════════════════════════
+  - title: "P4  事件与网关控制模式"
+    slides:
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-08  网关/事件模式卡  ── 四种典型模式
+      # 特性: 卡片网格 · XOR/AND/OR/Event-Based · 各分支节点
+      # ─────────────────────────────────────────────────────────────────
+      bp_08_event_gateway_control_pattern:
+        title: "BP-08  网关与事件控制模式参考卡"
+        subtitle: "XOR排他 · AND并行 · OR包容 · 事件型网关 — 四种典型控制流"
+        content:
+          variant: pattern_card
+          patterns:
+            - title: "排他网关 (XOR) — 条件路由"
+              nodes:
+                - { id: s,   type: start_event,      x: 0.0 }
+                - { id: gw,  type: exclusive_gateway, x: 0.5 }
+                - { id: a,   label: "VIP 通道",       type: user_task,    x: 1.3, y_branch: 0 }
+                - { id: b,   label: "普通队列",        type: task,         x: 1.3, y_branch: 1 }
+                - { id: gj,  type: exclusive_gateway, x: 2.8 }
+                - { id: e,   type: end_event,         x: 3.5 }
+              flows:
+                - { from: s,  to: gw }
+                - { from: gw, to: a,  label: "VIP" }
+                - { from: gw, to: b,  label: "普通" }
+                - { from: a,  to: gj }
+                - { from: b,  to: gj }
+                - { from: gj, to: e }
+
+            - title: "并行网关 (AND) — 并发执行"
+              nodes:
+                - { id: s,   type: start_event,      x: 0.0 }
+                - { id: gw,  type: parallel_gateway,  x: 0.5 }
+                - { id: a,   label: "质检",            type: service_task, x: 1.3, y_branch: 0 }
+                - { id: b,   label: "入库",            type: task,         x: 1.3, y_branch: 1 }
+                - { id: c,   label: "贴标",            type: task,         x: 1.3, y_branch: 2 }
+                - { id: gj,  type: parallel_gateway,  x: 2.8 }
+                - { id: e,   type: end_event,         x: 3.5 }
+              flows:
+                - { from: s,  to: gw }
+                - { from: gw, to: a }
+                - { from: gw, to: b }
+                - { from: gw, to: c }
+                - { from: a,  to: gj }
+                - { from: b,  to: gj }
+                - { from: c,  to: gj }
+                - { from: gj, to: e }
+
+            - title: "包容网关 (OR) — 任意组合"
+              nodes:
+                - { id: s,   type: start_event,      x: 0.0 }
+                - { id: gw,  type: inclusive_gateway, x: 0.5 }
+                - { id: a,   label: "短信通知",        type: send_task,    x: 1.3, y_branch: 0 }
+                - { id: b,   label: "邮件通知",        type: send_task,    x: 1.3, y_branch: 1 }
+                - { id: c,   label: "APP推送",         type: service_task, x: 1.3, y_branch: 2 }
+                - { id: gj,  type: inclusive_gateway, x: 2.8 }
+                - { id: e,   type: end_event,         x: 3.5 }
+              flows:
+                - { from: s,  to: gw }
+                - { from: gw, to: a,  label: "≥1渠道" }
+                - { from: gw, to: b }
+                - { from: gw, to: c }
+                - { from: a,  to: gj }
+                - { from: b,  to: gj }
+                - { from: c,  to: gj }
+                - { from: gj, to: e }
+
+            - title: "事件型网关 — 竞争响应"
+              nodes:
+                - { id: s,   type: start_event,          x: 0.0 }
+                - { id: gw,  type: event_gateway,         x: 0.5 }
+                - { id: m,   label: "收到确认消息",        type: intermediate_event, x: 1.3, y_branch: 0, marker: "msg" }
+                - { id: t,   label: "30分钟超时",          type: intermediate_event, x: 1.3, y_branch: 1, marker: "timer" }
+                - { id: ok,  label: "继续处理",            type: task,               x: 2.5, y_branch: 0 }
+                - { id: esc, label: "升级处理",            type: send_task,          x: 2.5, y_branch: 1 }
+                - { id: e,   type: end_event,             x: 3.5, y_branch: 0 }
+              flows:
+                - { from: s,  to: gw }
+                - { from: gw, to: m,   label: "Msg" }
+                - { from: gw, to: t,   label: "Timer" }
+                - { from: m,  to: ok }
+                - { from: t,  to: esc }
+                - { from: ok, to: e }
+
+# ══════════════════════════════════════════════════════════════════════
+# P5  事务补偿与人机协同  (BP-09, BP-10)
+# ══════════════════════════════════════════════════════════════════════
+  - title: "P5  事务补偿与人机协同"
+    slides:
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-09  事务 + 补偿  ── 金融交易回滚
+      # 特性: Transaction双重边框 · Cancel/Error边界事件 · 2个补偿处理器
+      # ─────────────────────────────────────────────────────────────────
+      bp_09_compensation_transaction_pattern:
+        title: "BP-09  金融交易事务与补偿回滚"
+        subtitle: "Transaction Sub-Process双重边框 · Cancel/Error边界 · 补偿处理器(⟲)"
+        content:
+          transaction:
+            label: "资金划转事务"
+            internal_nodes:
+              - { id: ts,       type: start_event,    x_in: 0.3 }
+              - { id: debit,    label: "借方扣款",    type: task,          x_in: 1.2 }
+              - { id: fx,       label: "汇率换算",    type: service_task,  x_in: 2.4 }
+              - { id: credit,   label: "贷方入账",    type: task,          x_in: 3.6 }
+              - { id: gw_ok,    type: exclusive_gateway,                   x_in: 4.8 }
+              - { id: receipt,  label: "生成回单",    type: script_task,   x_in: 5.6,  y_branch: 0 }
+              - { id: te_ok,    type: end_event,                           x_in: 6.4,  y_branch: 0 }
+              - { id: te_cancel, type: cancel_end_event,                   x_in: 5.6,  y_branch: 1 }
+            internal_flows:
+              - { from: ts,      to: debit }
+              - { from: debit,   to: fx }
+              - { from: fx,      to: credit }
+              - { from: credit,  to: gw_ok }
+              - { from: gw_ok,   to: receipt,   label: "成功" }
+              - { from: receipt, to: te_ok }
+              - { from: gw_ok,   to: te_cancel, label: "失败" }
+          boundary_events:
+            - { id: bev_cancel, type: cancel_boundary }
+            - { id: bev_error,  type: error_boundary }
+          compensation_handlers:
+            - activity: debit
+              handler: { label: "借方撤销" }
+            - activity: credit
+              handler: { label: "贷方冲正" }
+          exception_flows: []
+
+      # ─────────────────────────────────────────────────────────────────
+      # BP-10  人机协同  ── 智能客服理赔处理
+      # 特性: Human/System/Decision 三种Lane · 7种Task类型 · Timer边界 · 自动化占比
+      # ─────────────────────────────────────────────────────────────────
+      bp_10_human_system_split:
+        title: "BP-10  智能客服理赔 人机协同流程"
+        subtitle: "Human/System/Decision 三种泳道 · 含User/Service/Script/BR/Send五种Task"
+        content:
+          pool:
+            name: "理赔处理系统"
+          lanes:
+            - { id: human,    name: "客服专员 Customer Service",  lane_type: human }
+            - { id: system,   name: "AI 智能引擎 Automation",     lane_type: system }
+            - { id: decision, name: "风控决策引擎 Risk Control",  lane_type: decision }
+          nodes:
+            - { id: start,   type: start_event,        lane: human,    x_in: 0.3 }
+            - { id: rcv,     label: "接收报案",         type: receive_task,       lane: human,    x_in: 1.1 }
+            - { id: ocr_scan, label: "单据OCR识别",     type: service_task,      lane: system,   x_in: 2.0 }
+            - { id: nlp,     label: "NLP 意图解析",     type: service_task,      lane: system,   x_in: 3.0 }
+            - { id: risk_br,  label: "风控规则引擎",    type: business_rule_task, lane: decision, x_in: 4.1 }
+            - { id: gw_risk,  type: exclusive_gateway,                            lane: decision, x_in: 5.2 }
+            - { id: manual,   label: "人工复核",        type: user_task,          lane: human,    x_in: 6.0,  y_branch: 0 }
+            - { id: auto_app, label: "自动核准",        type: script_task,        lane: system,   x_in: 6.0,  y_branch: 0 }
+            - { id: pay_gw,   type: parallel_gateway,                             lane: system,   x_in: 7.2 }
+            - { id: pay,      label: "赔款支付指令",    type: service_task,       lane: system,   x_in: 8.0,  y_branch: 0 }
+            - { id: sms,      label: "结案通知短信",    type: send_task,          lane: system,   x_in: 8.0,  y_branch: 1 }
+            - { id: pay_join, type: parallel_gateway,                             lane: system,   x_in: 9.0 }
+            - { id: end,      type: end_event,                                    lane: system,   x_in: 9.6 }
+          flows:
+            - { from: start,    to: rcv }
+            - { from: rcv,      to: ocr_scan }
+            - { from: ocr_scan, to: nlp }
+            - { from: nlp,      to: risk_br }
+            - { from: risk_br,  to: gw_risk }
+            - { from: gw_risk,  to: manual,   label: "高风险" }
+            - { from: gw_risk,  to: auto_app, label: "低风险" }
+            - { from: manual,   to: pay_gw }
+            - { from: auto_app, to: pay_gw }
+            - { from: pay_gw,   to: pay }
+            - { from: pay_gw,   to: sms }
+            - { from: pay,      to: pay_join }
+            - { from: sms,      to: pay_join }
+            - { from: pay_join, to: end }
+          boundary_events:
+            - { id: bev_timer, type: timer_boundary, attached_to: manual }
+          automation_summary:
+            automation_pct: 78
+            human_tasks: 2
+            system_tasks: 7

@@ -11,6 +11,7 @@ from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches as _Inches, Pt
+from lxml import etree as _etree
 from renderer_utils import shape_rect, textbox
 
 _LEGACY_WIDTH_IN = 13.333
@@ -44,6 +45,10 @@ def _C(ctx):
     """Build colors dict from theme + semantic overrides."""
     c = dict(ctx.colors)
     c.update(_semantic_from_theme(c))
+    c.setdefault("white", (255, 255, 255))
+    c.setdefault("text", c.get("dark", (34, 34, 34)))
+    c.setdefault("line", c.get("gray", (190, 190, 190)))
+    c.setdefault("dark", c.get("text", (34, 34, 34)))
     return c
 
 
@@ -78,6 +83,21 @@ def short(text, limit=36):
     return t if len(t) <= limit else t[:max(1, limit - 1)] + "…"
 
 
+def should_render(value):
+    """Check if a field value should be rendered.
+    
+    Returns False if value is None, empty string, or empty list/dict.
+    This allows loaders to conditionally skip rendering optional elements.
+    """
+    if value is None:
+        return False
+    if isinstance(value, str) and value.strip() == "":
+        return False
+    if isinstance(value, (list, dict)) and len(value) == 0:
+        return False
+    return True
+
+
 def _badge(slide, tag, C):
     shape_rect(slide, int(Inches(_CX)), int(Inches(_CY - 0.30)),
                int(Inches(1.30)), int(Inches(0.24)), fill_color=C["dark"])
@@ -87,7 +107,7 @@ def _badge(slide, tag, C):
 
 
 def _footer(slide, note="", C=None):
-    if note and C:
+    if should_render(note) and C:
         textbox(slide, int(Inches(_CX)), int(Inches(_FY)),
                 int(Inches(8.4)), int(Inches(0.22)),
                 short(note, 120), size="caption", color=C["gray"], align=PP_ALIGN.RIGHT)
@@ -255,18 +275,45 @@ _LANE_DEF = [
 ]
 
 
-def _rgb(color):
-    return RGBColor(*color) if isinstance(color, tuple) else color
+def _rgb(color, C=None):
+    """Convert color to RGBColor: supports tuple (r,g,b), color name string, or RGBColor.
+    
+    Handles:
+    - RGBColor instances (pass through)
+    - Tuples/lists of (r,g,b) -> convert to RGBColor
+    - String color names (if C dict provided, resolve; otherwise fallback to gray)
+    - None -> fallback to dark gray
+    """
+    # Already an RGBColor
+    if isinstance(color, RGBColor):
+        return color
+    # Tuple/list -> convert to RGBColor
+    if isinstance(color, (tuple, list)) and len(color) == 3:
+        return RGBColor(*color)
+    # String color name - try to resolve from theme
+    if isinstance(color, str):
+        if C and color in C:
+            resolved = C.get(color)
+            # Recursively convert the resolved value
+            if isinstance(resolved, (tuple, list)):
+                return RGBColor(*resolved)
+            if isinstance(resolved, RGBColor):
+                return resolved
+        # If not found or resolution failed, return gray fallback
+        return RGBColor(128, 128, 128)
+    # None or unknown -> fallback to gray
+    return RGBColor(128, 128, 128)
 
 
-def _bp_round_rect(slide, x, y, w, h, fill, line=None, line_width=1.0):
-    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h)
+def _bp_round_rect(slide, x, y, w, h, fill, line=None, line_width=1.0, C=None):
+    # Use rectangle instead of rounded rectangle
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, w, h)
     shape.fill.solid()
-    shape.fill.fore_color.rgb = _rgb(fill)
+    shape.fill.fore_color.rgb = _rgb(fill, C)
     if line is None:
         shape.line.fill.background()
     else:
-        shape.line.color.rgb = _rgb(line)
+        shape.line.color.rgb = _rgb(line, C)
         shape.line.width = Pt(line_width)
     return shape
 
@@ -289,43 +336,75 @@ def _bp_step(slide, x, y, w, h, step, C):
     critical = bool(step.get("critical"))
     manual = bool(step.get("manual"))
 
-    fill = C.get("light", (230, 245, 247)) if not manual else _lighter(C["gray"], 145)
-    edge = C["primary"] if critical else C["line"]
-    shape = _bp_round_rect(slide, x, y, w, h, fill, line=edge, line_width=2.0 if critical else 1.0)
+    fill = step.get("fill_color", C.get("light", (230, 245, 247)) if not manual else _lighter(C["gray"], 145))
+    edge = step.get("line_color", C["primary"] if critical else C["line"])
+    text_color = step.get("text_color", C["dark"])
+    system_fill = step.get("system_fill_color", C["dark"])
+    system_text = step.get("system_text_color", C["white"])
+    duration_line = step.get("duration_line_color", C["gray"])
+    duration_text = step.get("duration_text_color", C["gray"])
+    shape = _bp_round_rect(slide, x, y, w, h, fill, line=edge, line_width=2.0 if critical else 1.0, C=C)
     if manual:
         set_dash(shape)
 
-    textbox(slide, x + int(Inches(0.05)), y + int(Inches(0.08)),
-            w - int(Inches(0.10)), int(Inches(0.24)),
-            short(name, 22), size=9, color=C["dark"], align=PP_ALIGN.CENTER)
+    # Add text directly to the shape
+    if name:
+        tf = shape.text_frame
+        tf.clear()
+        tf.word_wrap = True
+        tf.margin_top = int(Inches(0.05))
+        tf.margin_bottom = int(Inches(0.05))
+        tf.margin_left = int(Inches(0.05))
+        tf.margin_right = int(Inches(0.05))
+        for i, line in enumerate(short(name, 22).split('\n')):
+            p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+            p.text = line
+            p.font.size = Pt(9)
+            p.font.color.rgb = _rgb(text_color, C)
+            p.alignment = PP_ALIGN.CENTER
 
-    if system:
+    if should_render(system):
         pill = _bp_round_rect(slide, x + int(Inches(0.12)), y + int(Inches(0.34)),
                               w - int(Inches(0.24)), int(Inches(0.14)),
-                              C["dark"], line=C["dark"])
-        add_text(pill, short(system, 18), size=7, color=_rgb(C["white"]))
+                              system_fill, line=system_fill, C=C)
+        add_text(pill, short(system, 18), size=7, color=_rgb(system_text, C))
 
-    if duration:
+    if should_render(duration):
         dur = _bp_round_rect(slide, x + w - int(Inches(0.34)), y + int(Inches(0.02)),
                              int(Inches(0.30)), int(Inches(0.12)),
-                             C.get("white", (255, 255, 255)), line=C["gray"])
-        add_text(dur, short(duration, 8), size=6, color=_rgb(C["gray"]))
+                             C.get("white", (255, 255, 255)), line=duration_line, C=C)
+        add_text(dur, short(duration, 8), size=6, color=_rgb(duration_text, C))
 
     if critical:
         textbox(slide, x + w - int(Inches(0.10)), y - int(Inches(0.03)),
                 int(Inches(0.08)), int(Inches(0.08)),
                 "!", size=8, bold=True, color=C["red"], align=PP_ALIGN.CENTER)
+    return shape
 
 
-def _bp_decision(slide, x, y, w, h, text, C):
+def _bp_decision(slide, x, y, w, h, text, C, *, fill=None, line=None, text_color=None):
     shape = slide.shapes.add_shape(MSO_SHAPE.DIAMOND, x, y, w, h)
     shape.fill.solid()
-    shape.fill.fore_color.rgb = _rgb(C.get("white", (255, 255, 255)))
-    shape.line.color.rgb = _rgb(C["dark"])
+    shape.fill.fore_color.rgb = _rgb(fill or C.get("white", (255, 255, 255)), C)
+    shape.line.color.rgb = _rgb(line or C["dark"], C)
     shape.line.width = Pt(1.2)
-    textbox(slide, x + int(Inches(0.04)), y + int(Inches(0.13)),
-            w - int(Inches(0.08)), int(Inches(0.2)),
-            short(text, 14), size=8, color=C["dark"], align=PP_ALIGN.CENTER)
+    
+    # Add text directly to the shape
+    if text:
+        tf = shape.text_frame
+        tf.clear()
+        tf.word_wrap = True
+        tf.margin_top = int(Inches(0.05))
+        tf.margin_bottom = int(Inches(0.05))
+        tf.margin_left = int(Inches(0.05))
+        tf.margin_right = int(Inches(0.05))
+        for i, line in enumerate(short(text, 14).split('\n')):
+            p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+            p.text = line
+            p.font.size = Pt(8)
+            p.font.color.rgb = _rgb(text_color or C["dark"], C)
+            p.alignment = PP_ALIGN.CENTER
+    return shape
 
 
 def _bp_event(slide, x, y, C, *, start=False, end=False):
@@ -351,19 +430,51 @@ def _bp_anchor(box, side):
     return x + w // 2, y + h // 2
 
 
-def _bp_link(slide, start_box, end_box, C, label="", dashed=False, color=None,
+def _bp_anchor_index(side):
+    return {
+        "top": 0,
+        "left": 1,
+        "bottom": 2,
+        "right": 3,
+    }.get(side)
+
+
+def _bp_link(slide, start_node, end_node, C, label="", dashed=False, color=None,
              start_side="right", end_side="left"):
+    start_box = start_node.get("box") if isinstance(start_node, dict) else start_node
+    end_box = end_node.get("box") if isinstance(end_node, dict) else end_node
+    start_shape = start_node.get("shape") if isinstance(start_node, dict) else None
+    end_shape = end_node.get("shape") if isinstance(end_node, dict) else None
     sx, sy = _bp_anchor(start_box, start_side)
     ex, ey = _bp_anchor(end_box, end_side)
-    conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, sx, sy, ex, ey)
-    conn.line.color.rgb = _rgb(color or C["dark"])
+    connector_type = MSO_CONNECTOR.ELBOW if (sx != ex and sy != ey) else MSO_CONNECTOR.STRAIGHT
+    conn = slide.shapes.add_connector(connector_type, sx, sy, ex, ey)
+    conn.line.color.rgb = _rgb(color or C["dark"], C)
     conn.line.width = Pt(1.3)
     if dashed:
         conn.line.dash_style = 4
+    # Add triangle arrowhead at connector end
+    ln = conn.line._ln
+    tail_end = _etree.SubElement(ln, '{http://schemas.openxmlformats.org/drawingml/2006/main}tailEnd')
+    tail_end.set('type', 'triangle')
+    tail_end.set('w', 'med')
+    tail_end.set('len', 'med')
+    if start_shape is not None:
+        try:
+            conn.begin_connect(start_shape, _bp_anchor_index(start_side))
+        except Exception:
+            pass
+    if end_shape is not None:
+        try:
+            conn.end_connect(end_shape, _bp_anchor_index(end_side))
+        except Exception:
+            pass
     if label:
-        textbox(slide, min(sx, ex) + int(Inches(0.03)), min(sy, ey) - int(Inches(0.12)),
-                int(Inches(0.9)), int(Inches(0.12)),
-                label, size=7, color=C["gray"], align=PP_ALIGN.LEFT)
+        mx = (sx + ex) // 2
+        my = (sy + ey) // 2
+        textbox(slide, mx - int(Inches(0.4)), my - int(Inches(0.15)),
+                int(Inches(0.8)), int(Inches(0.15)),
+                label, size=7, color=C["gray"], align=PP_ALIGN.CENTER)
 
 
 def _swimlane_simple(slide, x0, y0, tw, th, lanes, C, P):
@@ -409,6 +520,10 @@ def _swimlane_simple(slide, x0, y0, tw, th, lanes, C, P):
 
 
 def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
+    # Layout rule for production swimlanes:
+    # 1) keep activity boxes size-consistent unless content forces exception,
+    # 2) align semantically paired cross-lane nodes on shared centerlines when possible,
+    # 3) distribute nodes evenly across the usable flow canvas to avoid large right-side whitespace.
     lanes = content.get("lanes", [])
     lane_names = [lane.get("actor", "") if isinstance(lane, dict) else str(lane) for lane in lanes]
     if not lane_names:
@@ -428,11 +543,16 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
         _bp_lane(slide, x0, ly, tw, lh, lane_name, C, header_w)
 
     nodes = content.get("nodes", [])
+    has_event_node = any(node.get("type") == "event" for node in nodes)
     ncols = max(content.get("columns", 0), max((int(node.get("col", 0)) for node in nodes), default=0) + 1, 1)
     col_gap = int(Inches(content.get("col_gap", 0.18)))
     slot_w = int((flow_w - col_gap * max(0, ncols - 1)) / ncols)
     base_step_w = min(int(Inches(content.get("step_w", 0.92))), slot_w)
     base_step_h = int(Inches(content.get("step_h", 0.56)))
+    left_pad = int(Inches(content.get("left_pad_in", 0.12 if has_event_node else 0.06)))
+    right_pad = int(Inches(content.get("right_pad_in", 0.28 if has_event_node else 0.06)))
+    start_event_outer_pad = int(Inches(content.get("start_event_outer_pad_in", 0.04)))
+    end_event_outer_pad = int(Inches(content.get("end_event_outer_pad_in", 0.06)))
 
     node_map = {}
     for node in nodes:
@@ -454,10 +574,18 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
         else:
             col = int(node.get("col", 0))
             nx = lx + col * (slot_w + col_gap)
-        
-        # 约束节点不超出区域边界（为连接线和样式留余量）
-        max_x = x0 + tw - node_w - int(Inches(0.06))
-        nx = min(nx, max_x)
+
+        # 约束节点在可用泳道画布内。
+        # 普通节点遵守通用左右留白；开始/结束事件节点单独计算外侧边距，
+        # 避免把终点圆点反向挤回最后一个活动框上方/内部。
+        min_x = flow_x + left_pad
+        max_x = flow_x + flow_w - node_w - right_pad
+        if node.get("type") == "event":
+            if node.get("start", False):
+                min_x = flow_x + start_event_outer_pad
+            if node.get("end", False):
+                max_x = flow_x + flow_w - node_w - end_event_outer_pad
+        nx = max(min_x, min(nx, max_x))
         
         if node.get("y_in") is not None:
             ny = y0 + int(Inches(node.get("y_in", 0)))
@@ -470,13 +598,20 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
 
         kind = node.get("type", "step")
         if kind == "decision":
-            _bp_decision(slide, nx, ny, node_w, node_h, node.get("text") or node.get("name", ""), C)
+            shape = _bp_decision(
+                slide, nx, ny, node_w, node_h, node.get("text") or node.get("name", ""), C,
+                fill=node.get("fill_color"), line=node.get("line_color"), text_color=node.get("text_color"),
+            )
         elif kind == "event":
-            _bp_event(slide, nx, ny, C, start=node.get("start", False), end=node.get("end", False))
+            shape = _bp_event(slide, nx, ny, C, start=node.get("start", False), end=node.get("end", False))
         else:
-            _bp_step(slide, nx, ny, node_w, node_h, node, C)
+            shape = _bp_step(slide, nx, ny, node_w, node_h, node, C)
 
-        node_map[node.get("id", f"node_{len(node_map)}")] = (nx, ny, node_w, node_h)
+        node_map[node.get("id", f"node_{len(node_map)}")] = {
+            "shape": shape,
+            "box": (nx, ny, node_w, node_h),
+            "kind": kind,
+        }
 
     for link in content.get("links", []):
         start_box = node_map.get(link.get("from"))
@@ -759,8 +894,9 @@ def render_two_column(ctx, data, tag, defaults=None, slide=None, region=None):
     mx = x0 + cw
     textbox(slide, mx, y0 + th // 2 - int(Inches(0.28)), aw, int(Inches(0.28)),
             "→", size="h2", bold=True, color=C["primary"], align=PP_ALIGN.CENTER)
-    textbox(slide, mx, y0 + th // 2 - int(Inches(0.0)), aw, int(Inches(0.22)),
-            short(delta, 12), size="caption", color=C["gray"], align=PP_ALIGN.CENTER)
+    if should_render(delta):
+        textbox(slide, mx, y0 + th // 2 - int(Inches(0.0)), aw, int(Inches(0.22)),
+                short(delta, 12), size="caption", color=C["gray"], align=PP_ALIGN.CENTER)
     # right panel (cyan = to-be)
     rx = x0 + cw + aw
     rcw = tw - cw - aw
@@ -827,7 +963,7 @@ def render_journey_stages(ctx, data, tag, defaults=None, slide=None, region=None
                 int(Inches(0.4)), int(Inches(0.3)), e_icon, size="label",
                 color=C["white"], align=PP_ALIGN.CENTER)
         pain = str(phase.get("pain", ""))
-        if pain:
+        if should_render(pain):
             textbox(slide, cx + int(Inches(0.05)), y0 + int(Inches(2.2)),
                     pw - int(Inches(0.1)), int(Inches(0.8)),
                     f"⚠ {short(pain, 32)}", size="caption", color=C["red"])
@@ -866,7 +1002,7 @@ def render_kpi_cascade(ctx, data, tag, defaults=None, slide=None, region=None):
                 short(obj.get("label", ""), 22), size="caption", bold=True,
                 color=C["white"], align=PP_ALIGN.CENTER)
         owner = str(obj.get("owner", ""))
-        if owner:
+        if should_render(owner):
             textbox(slide, ox + int(Inches(0.06)), y0 + int(Inches(0.38)),
                     ow - int(Inches(0.12)), int(Inches(0.22)),
                     f"Owner: {short(owner, 16)}", size="caption", color=C["secondary"],
@@ -992,7 +1128,7 @@ def render_node_graph(ctx, data, tag, defaults=None, slide=None, region=None):
             if sx != dx:
                 _hline(slide, min(sx, dx), dy, abs(dx - sx), C["secondary"], 0.035)
         lbl = str(e.get("label", ""))
-        if lbl:
+        if should_render(lbl):
             mx = (sx + dx) // 2;  my = (sy + dy) // 2
             textbox(slide, mx - int(Inches(0.4)), my - int(Inches(0.12)),
                     int(Inches(0.8)), int(Inches(0.2)), short(lbl, 12),
@@ -1127,7 +1263,7 @@ def render_bounded_context(ctx, data, tag, defaults=None, slide=None, region=Non
             else:
                 _vline(slide, sx, min(sy, dy), abs(dy - sy), C["dark"], 0.04)
             lbl = str(rel.get("type", ""))
-            if lbl:
+            if should_render(lbl):
                 textbox(slide, (sx + dx) // 2 - int(Inches(0.6)), (sy + dy) // 2 - int(Inches(0.14)),
                         int(Inches(1.2)), int(Inches(0.2)), short(lbl, 18),
                         size="micro", color=C["dark"], align=PP_ALIGN.CENTER)
@@ -1198,7 +1334,7 @@ def render_er_diagram(ctx, data, tag, defaults=None, slide=None, region=None):
             if sx != dx:
                 _hline(slide, min(sx, dx), dy, abs(dx - sx), C["primary"], 0.04)
         lbl = str(rel.get("label", ""))
-        if lbl:
+        if should_render(lbl):
             textbox(slide, (sx + dx) // 2 - int(Inches(0.5)), (sy + dy) // 2 - int(Inches(0.12)),
                     int(Inches(1.0)), int(Inches(0.2)), short(lbl, 16),
                     size="micro", color=C["text"], align=PP_ALIGN.CENTER)

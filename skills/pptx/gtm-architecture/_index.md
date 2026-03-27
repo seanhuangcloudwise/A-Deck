@@ -51,6 +51,10 @@ Parallel to TOGAF (system architecture) and Roadmap (product planning), this dom
 1. Titles and subtitles must use layout placeholders (idx=0, idx=1) first.
 2. Rounded rectangle corner radius must be small (<=6pt); no PowerPoint default large radius.
 3. No decorative-only shapes. Every connector carries semantic meaning.
-4. Cloudwise brand palette: `#00CCD7` (primary) / `#53E3EB` (secondary) / `#2F2F2F` (text) / `#A5A7AA` (inactive) / `#44546A` (domain headers).
+4. Colors must come from active master theme (`ctx.colors` / `ctx.palette`), not hardcoded brand values. Fixed colors are allowed only for diagram-specific semantics.
 5. GTM-specific: each claim should be supported by at least one data point or reference on the same slide.
 6. Competitive claims must be defensible; avoid unverifiable superlatives.
+7. All geometry constants are authored on base canvas 10.0" x 5.625" and must be adapted to actual master size at render time.
+8. Dark-theme rendering must enforce high contrast by separating line/edge color from body text color (e.g., stroke vs ink semantics).
+9. Flow/dependency/timeline relationship connectors default to curved style (`MSO_CONNECTOR_TYPE.CURVE`) unless a diagram spec explicitly requires another connector type.
+10. Release candidate decks must pass business overflow gate with raw overflow = 0 and business overflow = 0.

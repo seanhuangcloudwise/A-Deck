@@ -18,6 +18,11 @@ Do not default to technical topology diagrams in this skill.
 1. Title/subtitle must use master placeholders first.
 2. Rounded rectangle corners stay small.
 3. No decorative-only shapes/lines; each connector must represent a relationship.
+4. BA-03 swimlane/process diagrams must follow layout-first rules: uniform activity sizing by default, cross-lane center alignment for related nodes, even horizontal distribution across the lane canvas, and explicit standalone space reservation for start/end event nodes.
+5. Geometry constants are authored on base canvas 10.0\" x 5.625\" and must adapt to active master size at render time.
+6. Colors must come from active theme tokens; dark mode must preserve contrast by separating connector/edge color and body text color.
+7. Process/interaction connectors default to curved style unless strict notation requires another connector type.
+8. Release candidate decks must pass business overflow gate with raw overflow = 0 and business overflow = 0.
 
 ## Diagram Catalog (Must Support)
 
@@ -35,6 +40,7 @@ Do not default to technical topology diagrams in this skill.
 - Purpose: show process steps and ownership
 - Structure: swimlane or linear flow with decisions
 - Minimum input: steps[], owners[], decisions(optional)
+- Layout defaults: equal-sized activity boxes unless text forces an exception; arrows must be directional; cross-lane handoff nodes should align vertically when semantically paired; start/end events must count as occupied layout nodes rather than being visually appended at the edge.
 
 4. Organization & Actor Interaction
 - Purpose: show cross-role collaboration and responsibilities
@@ -118,6 +124,9 @@ See [diagrams/_catalog.md](diagrams/_catalog.md) for selection guide.
 - Is there at least one business meaning per shape group?
 - Are business terms consistent (capability/process/service/role/KPI)?
 - Is each diagram explainable in one sentence by presenter?
+- Does dark theme keep readable contrast for lines, labels, and grouped regions?
+- Do process/interaction connectors follow curved style by default where applicable?
+- Is business overflow check passing (raw=0 and business=0)?
 
 ## Failure Fallbacks
 

@@ -51,6 +51,14 @@ _Ref: TOGAF ADM Phase B | BPMN 2.0 (OMG) | ISO 19510 | Rummler-Brache Swimlane M
 - Step spacing: 8pt gutters between step boxes
 - Connector line stroke: 1.5pt, #2F2F2F
 
+**Layout Heuristics (Mandatory for production output)**:
+- Keep standard activity boxes globally consistent in width and height on the same slide. Only enlarge an individual box when text density genuinely requires it.
+- For nodes that hand off between adjacent upper/lower lanes, prefer shared horizontal centers so the vertical transition reads as one aligned column.
+- Use the lane canvas evenly from left to right. Do not cluster nodes on the left/middle while leaving large empty space on the right.
+- When a process has 3 major steps in one lane, prefer near-equal center spacing before introducing custom offsets.
+- Decision diamonds may use a separate standard size from activity boxes, but all diamonds on the same slide should stay consistent.
+- Start and end event nodes must be treated as independent occupied nodes in the layout calculation. They need their own visible outer margin and may not overlap or visually merge into the nearest activity box.
+
 ---
 
 ## 3. Color Semantics
@@ -92,10 +100,10 @@ _Ref: TOGAF ADM Phase B | BPMN 2.0 (OMG) | ISO 19510 | Rummler-Brache Swimlane M
 | Parallelogram | Input/Output data artifact |
 | Dashed border rect | Offline/manual step |
 | Cylinder | System / database involved |
-| Solid arrow | Sequence flow (within lane) |
-| Curved/dashed arrow | Cross-lane handoff |
+| Solid arrow | Directional sequence flow (within lane) |
+| Curved/dashed arrow | Directional cross-lane handoff |
 
-**Connector Rule**: Sequence flows between steps in same lane → solid straight arrow. Cross-lane handoffs → curved arrow with brief label. Exception paths → dashed arrow. Never use arrows merely as separators.
+**Connector Rule**: All process connectors must be directional arrows, not plain lines. Sequence flows between steps in same lane → solid arrow. Cross-lane handoffs → directional elbow/curved arrow with brief label. Exception paths → dashed directional arrow. Never use arrows merely as separators. When a connector terminates at an end event, keep enough trailing space so the event remains visually separate from the previous activity box.
 
 ---
 
@@ -128,6 +136,10 @@ _Ref: TOGAF ADM Phase B | BPMN 2.0 (OMG) | ISO 19510 | Rummler-Brache Swimlane M
 3. **Lane overload**: More than 7 swimlanes on one slide — text becomes unreadable and the structure looks like a spreadsheet.
 4. **System boxes as process steps**: Placing system names (e.g., "SAP") as process steps implies the system does the work instead of the role — always use role lanes.
 5. **Orphaned steps**: Steps with no incoming or outgoing connector — breaks the flow narrative and confuses reviewers.
+6. **Inconsistent step sizing**: Similar activity nodes rendered at visibly different sizes without content reason — weakens process rhythm and makes the page look unstructured.
+7. **Broken cross-lane alignment**: A handoff node in lane A and its paired node in lane B are close in meaning but far apart horizontally — creates unnecessary zig-zag routing.
+8. **Unbalanced canvas use**: Most nodes occupy only the left 60–70% of the lane width while the right side remains empty — signals poor composition.
+9. **Collapsed end event**: The end event circle is pushed against or partially overlaps the last activity box because it was not given its own layout slot.
 
 ---
 
@@ -149,10 +161,13 @@ TOGAF advises treating business process documentation as input to application ar
 - [ ] Every process has exactly one start event and at least one end event
 - [ ] All decision diamonds have all branches labeled with conditions
 - [ ] No orphaned steps (every step has at minimum one incoming and one outgoing connector)
-- [ ] Cross-lane handoffs use curved or annotated arrows
+- [ ] Cross-lane handoffs use directional arrows and align cleanly with paired nodes where possible
 - [ ] Title uses slide layout placeholder (idx=0)
 - [ ] Lane headers use #44546A fill with white text
 - [ ] System annotations present for every step that involves an IT system
 - [ ] Level (L1 or L2) is stated in subtitle (placeholder idx=1) or slide body
 - [ ] Exception paths are shown with dashed arrows and labeled
 - [ ] Process name, owner, and version are noted in slide footer or subtitle area
+- [ ] Standard activity boxes use one default size unless a content-driven exception is documented
+- [ ] Node centers are distributed evenly enough that no large empty region remains on the right side of the lane canvas
+- [ ] Start/end event nodes have their own visible margin and do not visually merge with adjacent steps

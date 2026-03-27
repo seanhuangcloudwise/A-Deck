@@ -20,6 +20,10 @@ Do not use this skill for infrastructure topology, network design, or data model
 1. Title/subtitle must use master placeholders first.
 2. Rounded rectangle corners stay small.
 3. No decorative-only shapes/lines; each connector must represent a relationship.
+4. Geometry constants are authored on base canvas 10.0\" x 5.625\" and must adapt to active master size at render time.
+5. Colors must come from active theme tokens; dark mode must preserve contrast by separating connector/edge color and body text color.
+6. Sequence/integration/dependency connectors default to curved style unless strict notation requires another connector type.
+7. Release candidate decks must pass business overflow gate with raw overflow = 0 and business overflow = 0.
 
 ## Diagram Catalog (Must Support)
 
@@ -70,3 +74,6 @@ See [diagrams/_catalog.md](diagrams/_catalog.md) for selection guide.
 - Are page titles/subtitles in placeholders?
 - Is protocol or interface type labeled on every integration arrow?
 - Are application lifecycle statuses shown where appropriate?
+- Does dark theme keep readable contrast for lines, labels, and grouped regions?
+- Do flow/interaction connectors follow curved style by default where applicable?
+- Is business overflow check passing (raw=0 and business=0)?

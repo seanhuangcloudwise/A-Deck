@@ -70,34 +70,71 @@ def _event(slide, x, y, start=True):
     c.fill.solid()
     c.fill.fore_color.rgb = C["domain_bg"] if start else C["dark"]
     c.line.color.rgb = C["domain_bg"] if start else C["dark"]
+    return c
 
 
 def _link(slide, x1, y1, x2, y2, label="", dashed=False, color=None, style="auto"):
     line_color = color or C["dark"]
 
-    def _segment(sx, sy, ex, ey):
-        conn = slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, _i(sx), _i(sy), _i(ex), _i(ey))
-        conn.line.color.rgb = line_color
-        conn.line.width = Pt(1.3)
-        if dashed:
-            conn.line.dash_style = 4
-        return conn
+    def _nearest_anchor(point_x, point_y, tol=Inches(0.12)):
+        """Find nearest shape edge and map to connector point index.
 
-    is_elbow = style == "elbow" or (style == "auto" and _i(y1) != _i(y2))
-    if is_elbow:
-        bend_x = x1 + (x2 - x1) * 0.5
-        _segment(x1, y1, bend_x, y1)
-        _segment(bend_x, y1, bend_x, y2)
-        conn = _segment(bend_x, y2, x2, y2)
-        if label:
-            textbox(slide, bend_x + Inches(0.03), min(y1, y2) - Inches(0.12), Inches(0.9), Inches(0.12),
-                    label, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
-        return conn
+        Rectangle/rounded-rect/oval generally expose 4 connection points:
+        0=top, 1=right, 2=bottom, 3=left.
+        """
+        best = None
+        px, py = _i(point_x), _i(point_y)
+        for sh in slide.shapes:
+            # Skip zero-size and connector-like shapes
+            if getattr(sh, "width", 0) <= 0 or getattr(sh, "height", 0) <= 0:
+                continue
+            left, top = sh.left, sh.top
+            right, bottom = sh.left + sh.width, sh.top + sh.height
 
-    conn = _segment(x1, y1, x2, y2)
+            # Point must be near boundary box region
+            if not (left - tol <= px <= right + tol and top - tol <= py <= bottom + tol):
+                continue
+
+            d_top = abs(py - top)
+            d_right = abs(px - right)
+            d_bottom = abs(py - bottom)
+            d_left = abs(px - left)
+            edge, dist = min(
+                ((0, d_top), (1, d_right), (2, d_bottom), (3, d_left)),
+                key=lambda t: t[1],
+            )
+            if dist > tol:
+                continue
+            if best is None or dist < best[2]:
+                best = (sh, edge, dist)
+        return None if best is None else (best[0], best[1])
+
+    connector_type = MSO_CONNECTOR.ELBOW if (style == "elbow" or (style == "auto" and _i(y1) != _i(y2))) else MSO_CONNECTOR.STRAIGHT
+    conn = slide.shapes.add_connector(connector_type, _i(x1), _i(y1), _i(x2), _i(y2))
+    conn.line.color.rgb = line_color
+    conn.line.width = Pt(1.3)
+    if dashed:
+        conn.line.dash_style = 4
+
+    start_anchor = _nearest_anchor(x1, y1)
+    end_anchor = _nearest_anchor(x2, y2)
+    if start_anchor is not None:
+        sh, idx = start_anchor
+        try:
+            conn.begin_connect(sh, idx)
+        except Exception:
+            pass
+    if end_anchor is not None:
+        sh, idx = end_anchor
+        try:
+            conn.end_connect(sh, idx)
+        except Exception:
+            pass
+
     if label:
-        textbox(slide, min(x1, x2) + Inches(0.03), min(y1, y2) - Inches(0.12), Inches(0.9), Inches(0.12),
-                label, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
+        lx = min(x1, x2) + Inches(0.03)
+        ly = min(y1, y2) - Inches(0.12)
+        textbox(slide, lx, ly, Inches(0.9), Inches(0.12), label, size=7, color=C["brand_gray"], align=PP_ALIGN.LEFT)
     return conn
 
 

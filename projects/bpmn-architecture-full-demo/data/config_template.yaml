@@ -1,0 +1,296 @@
+meta:
+  title: "BPMN 2.0 Architecture — Full Demo"
+  subtitle: "Data-driven Loader Mechanism | BP-01 ~ BP-10"
+  back_title: "Thank You"
+
+sections:
+  # ── P1 — Collaboration & Orchestration ──────────────────────
+  - title: "P1 Collaboration & Orchestration"
+    slides:
+      bp_01_collaboration_overview:
+        title: "BP-01 Pizza Ordering Collaboration"
+        subtitle: "Multi-pool message exchange (OMG §9)"
+        content:
+          pools:
+            - id: customer
+              name: "Customer"
+              tasks:
+                - { id: order, label: "Place Order", type: send_task }
+                - { id: pay, label: "Make Payment", type: task }
+                - { id: eat, label: "Eat Pizza", type: task }
+              flows:
+                - { from: order, to: pay }
+                - { from: pay, to: eat }
+            - id: vendor
+              name: "Pizza Vendor"
+              tasks:
+                - { id: receive, label: "Receive Order", type: receive_task }
+                - { id: bake, label: "Bake Pizza", type: task }
+                - { id: deliver, label: "Deliver", type: task }
+              flows:
+                - { from: receive, to: bake }
+                - { from: bake, to: deliver }
+          message_flows:
+            - { from_pool: customer, from_task: order, to_pool: vendor, to_task: receive, label: "Order" }
+            - { from_pool: vendor, from_task: deliver, to_pool: customer, to_task: eat, label: "Pizza" }
+
+      bp_02_orchestration_flow:
+        title: "BP-02 Shipment Process"
+        subtitle: "Single-pool orchestration with gateways (OMG §10)"
+        content:
+          nodes:
+            - { id: start, type: start_event, x_in: 0.2 }
+            - { id: prepare, label: "Prepare Shipment", type: task, x_in: 1.0 }
+            - { id: gw1, type: exclusive_gateway, x_in: 2.5 }
+            - { id: insure, label: "Arrange Insurance", type: task, x_in: 3.5, y_branch: -1 }
+            - { id: label, label: "Print Label", type: task, x_in: 3.5, y_branch: 1 }
+            - { id: gw2, type: parallel_gateway, x_in: 5.0 }
+            - { id: ship, label: "Ship Goods", type: task, x_in: 6.2 }
+            - { id: end, type: end_event, x_in: 7.6 }
+          flows:
+            - { from: start, to: prepare }
+            - { from: prepare, to: gw1 }
+            - { from: gw1, to: insure, label: "High value" }
+            - { from: gw1, to: label, label: "Standard" }
+            - { from: insure, to: gw2 }
+            - { from: label, to: gw2 }
+            - { from: gw2, to: ship }
+            - { from: ship, to: end }
+
+  # ── P2 — Sub-Processes & Lanes ──────────────────────────────
+  - title: "P2 Sub-Processes & Lanes"
+    slides:
+      bp_03_expanded_subprocess:
+        title: "BP-03 Order Fulfillment Sub-Process"
+        subtitle: "Expanded sub-process with boundary events (OMG §10.2)"
+        content:
+          parent_nodes:
+            - { id: start, type: start_event, x_in: 0.2 }
+            - { id: end, type: end_event, x_in: 8.0 }
+          subprocess:
+            label: "Fulfillment"
+            x: 1.5
+            y: 1.5
+            w: 5.5
+            h: 2.2
+            internal_nodes:
+              - { id: check, label: "Check Stock", type: task, x_in: 0.5 }
+              - { id: pick, label: "Pick Items", type: task, x_in: 2.0 }
+              - { id: pack, label: "Pack Box", type: task, x_in: 3.5 }
+            internal_flows:
+              - { from: check, to: pick }
+              - { from: pick, to: pack }
+            boundary_events:
+              - { id: bev_timeout, type: timer_boundary, position: bottom }
+          parent_flows:
+            - { from: start, to: subprocess }
+            - { from: subprocess, to: end }
+
+      bp_04_collapsed_subprocess_call_activity:
+        title: "BP-04 Service Request Overview"
+        subtitle: "Collapsed sub-process boxes and call activities (OMG §10.3)"
+        content:
+          nodes:
+            - { id: start, type: start_event, x_in: 0.2 }
+            - { id: triage, label: "Triage Request", type: collapsed_subprocess, x_in: 1.2 }
+            - { id: resolve, label: "Resolve Issue", type: call_activity, x_in: 3.0 }
+            - { id: close, label: "Close Ticket", type: collapsed_subprocess, x_in: 5.0 }
+            - { id: end, type: end_event, x_in: 7.0 }
+          flows:
+            - { from: start, to: triage }
+            - { from: triage, to: resolve }
+            - { from: resolve, to: close }
+            - { from: close, to: end }
+
+      bp_05_lane_nested_lane_flow:
+        title: "BP-05 Approval Process Swimlanes"
+        subtitle: "Nested lanes with role-based task assignment (OMG §10.8)"
+        content:
+          pool:
+            name: "Expense Approval"
+          lanes:
+            - id: dept
+              name: "Department"
+              nested_lanes:
+                - { id: employee, name: "Employee" }
+                - { id: manager, name: "Manager" }
+            - id: finance
+              name: "Finance"
+              nested_lanes: []
+          nodes:
+            - { id: start, type: start_event, lane: employee, x_in: 0.3 }
+            - { id: submit, label: "Submit Claim", type: user_task, lane: employee, x_in: 1.2 }
+            - { id: review, label: "Review Claim", type: user_task, lane: manager, x_in: 2.8 }
+            - { id: gw, type: exclusive_gateway, lane: manager, x_in: 4.4 }
+            - { id: approve, label: "Process Payment", type: service_task, lane: finance, x_in: 5.6 }
+            - { id: reject, label: "Notify Rejection", type: send_task, lane: employee, x_in: 5.6, y_branch: 1 }
+            - { id: end, type: end_event, lane: finance, x_in: 7.2 }
+          flows:
+            - { from: start, to: submit }
+            - { from: submit, to: review }
+            - { from: review, to: gw }
+            - { from: gw, to: approve, label: "Approved" }
+            - { from: gw, to: reject, label: "Rejected" }
+            - { from: approve, to: end }
+
+  # ── P3 — Choreography & Conversation ───────────────────────
+  - title: "P3 Choreography & Conversation"
+    slides:
+      bp_06_choreography_interaction:
+        title: "BP-06 Purchase Choreography"
+        subtitle: "Participant-centric interaction sequence (OMG §11)"
+        content:
+          choreography_tasks:
+            - { id: ct1, name: "Request Quote", initiator: "Buyer", responder: "Seller" }
+            - { id: ct2, name: "Submit Quote", initiator: "Seller", responder: "Buyer" }
+            - { id: ct3, name: "Place Order", initiator: "Buyer", responder: "Seller" }
+            - { id: ct4, name: "Ship Product", initiator: "Seller", responder: "Logistics" }
+          flows:
+            - { from: start, to: ct1 }
+            - { from: ct1, to: ct2 }
+            - { from: ct2, to: ct3 }
+            - { from: ct3, to: ct4 }
+            - { from: ct4, to: end }
+
+      bp_07_conversation_map:
+        title: "BP-07 Order Processing Conversation Map"
+        subtitle: "Hexagonal conversation topology (OMG §9.5)"
+        content:
+          participants:
+            - { id: customer, name: "Customer" }
+            - { id: sales, name: "Sales" }
+            - { id: warehouse, name: "Warehouse" }
+            - { id: shipping, name: "Shipping" }
+          conversations:
+            - id: c1
+              name: "Ordering"
+              type: conversation
+              connected_participants: [customer, sales]
+            - id: c2
+              name: "Fulfillment"
+              type: sub_conversation
+              connected_participants: [sales, warehouse, shipping]
+            - id: c3
+              name: "Delivery"
+              type: conversation
+              connected_participants: [customer, shipping]
+
+  # ── P4 — Event & Gateway Patterns ──────────────────────────
+  - title: "P4 Event & Gateway Patterns"
+    slides:
+      bp_08_event_gateway_control_pattern:
+        title: "BP-08 Gateway Pattern Reference"
+        subtitle: "Common control-flow patterns (OMG §10.5–10.6)"
+        content:
+          variant: pattern_card
+          patterns:
+            - title: "Exclusive (XOR)"
+              nodes:
+                - { id: s, type: start_event, x: 0.0 }
+                - { id: gw, type: exclusive_gateway, x: 0.5 }
+                - { id: a, label: "Path A", type: task, x: 1.3, y_branch: 0 }
+                - { id: b, label: "Path B", type: task, x: 1.3, y_branch: 1 }
+              flows:
+                - { from: s, to: gw }
+                - { from: gw, to: a, label: "Yes" }
+                - { from: gw, to: b, label: "No" }
+            - title: "Parallel (AND)"
+              nodes:
+                - { id: s, type: start_event, x: 0.0 }
+                - { id: gw, type: parallel_gateway, x: 0.5 }
+                - { id: a, label: "Task 1", type: task, x: 1.3, y_branch: 0 }
+                - { id: b, label: "Task 2", type: task, x: 1.3, y_branch: 1 }
+                - { id: gw2, type: parallel_gateway, x: 2.5 }
+                - { id: e, type: end_event, x: 3.2 }
+              flows:
+                - { from: s, to: gw }
+                - { from: gw, to: a }
+                - { from: gw, to: b }
+                - { from: a, to: gw2 }
+                - { from: b, to: gw2 }
+                - { from: gw2, to: e }
+            - title: "Inclusive (OR)"
+              nodes:
+                - { id: s, type: start_event, x: 0.0 }
+                - { id: gw, type: inclusive_gateway, x: 0.5 }
+                - { id: a, label: "Option A", type: task, x: 1.3, y_branch: 0 }
+                - { id: b, label: "Option B", type: task, x: 1.3, y_branch: 1 }
+              flows:
+                - { from: s, to: gw }
+                - { from: gw, to: a }
+                - { from: gw, to: b }
+            - title: "Event-Based"
+              nodes:
+                - { id: s, type: start_event, x: 0.0 }
+                - { id: gw, type: event_gateway, x: 0.5 }
+                - { id: msg, label: "Message Received", type: intermediate_event, x: 1.3, y_branch: 0 }
+                - { id: tmr, label: "Timeout", type: intermediate_event, x: 1.3, y_branch: 1 }
+              flows:
+                - { from: s, to: gw }
+                - { from: gw, to: msg, label: "Msg" }
+                - { from: gw, to: tmr, label: "30 min" }
+
+  # ── P5 — Transaction & Human/System ────────────────────────
+  - title: "P5 Transaction & Automation"
+    slides:
+      bp_09_compensation_transaction_pattern:
+        title: "BP-09 Travel Booking Transaction"
+        subtitle: "Transaction sub-process with compensation (OMG §10.7)"
+        content:
+          transaction:
+            label: "Book Travel"
+            internal_nodes:
+              - { id: ts, type: start_event, x_in: 0.3 }
+              - { id: book_flight, label: "Book Flight", type: task, x_in: 1.5 }
+              - { id: book_hotel, label: "Book Hotel", type: task, x_in: 3.0 }
+              - { id: confirm, label: "Confirm", type: task, x_in: 4.5 }
+              - { id: te, type: end_event, x_in: 5.5 }
+            internal_flows:
+              - { from: ts, to: book_flight }
+              - { from: book_flight, to: book_hotel }
+              - { from: book_hotel, to: confirm }
+              - { from: confirm, to: te }
+          boundary_events:
+            - { id: cancel_bev, type: cancel_boundary }
+            - { id: error_bev, type: error_boundary }
+          compensation_handlers:
+            - activity: book_flight
+              handler: { label: "Cancel Flight" }
+            - activity: book_hotel
+              handler: { label: "Cancel Hotel" }
+          exception_flows: []
+
+      bp_10_human_system_split:
+        title: "BP-10 Invoice Processing — Human vs System"
+        subtitle: "Human/system lane split with task-type icons (OMG §10.2.2)"
+        content:
+          pool:
+            name: "Invoice Processing"
+          lanes:
+            - { id: human, name: "Accounts Payable Clerk", lane_type: human }
+            - { id: system, name: "ERP / Automation", lane_type: system }
+          nodes:
+            - { id: start, type: start_event, lane: human, x_in: 0.3 }
+            - { id: receive, label: "Receive Invoice", type: receive_task, lane: human, x_in: 1.2 }
+            - { id: scan, label: "OCR Scan", type: service_task, lane: system, x_in: 2.2 }
+            - { id: match, label: "3-Way Match", type: business_rule_task, lane: system, x_in: 3.5 }
+            - { id: gw, type: exclusive_gateway, lane: system, x_in: 4.8 }
+            - { id: approve, label: "Manual Approve", type: user_task, lane: human, x_in: 5.8 }
+            - { id: post, label: "Auto-Post", type: script_task, lane: system, x_in: 5.8 }
+            - { id: pay, label: "Schedule Payment", type: service_task, lane: system, x_in: 7.2 }
+            - { id: end, type: end_event, lane: system, x_in: 8.2 }
+          flows:
+            - { from: start, to: receive }
+            - { from: receive, to: scan }
+            - { from: scan, to: match }
+            - { from: match, to: gw }
+            - { from: gw, to: approve, label: "Exception" }
+            - { from: gw, to: post, label: "Matched" }
+            - { from: approve, to: pay }
+            - { from: post, to: pay }
+            - { from: pay, to: end }
+          boundary_events: []
+          automation_summary:
+            automation_pct: 72
+            human_tasks: 3
+            system_tasks: 5

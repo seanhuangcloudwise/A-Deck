@@ -19,14 +19,19 @@ This folder contains four architecture skills aligned to TOGAF layers, each with
 |---|---|---|---|
 | Product Planning | `roadmap-architecture` | 10 diagram types | [RA-01 ~ RA-10](../roadmap-architecture/diagrams/_catalog.md) |
 | GTM Communication | `gtm-architecture` | 17 diagram types | [GM-01 ~ GM-17](../gtm-architecture/diagrams/_catalog.md) |
+| Process Modeling | `bpmn-architecture` | 10 diagram types | [BP-01 ~ BP-10](../bpmn-architecture/diagrams/_catalog.md) |
 
 The `roadmap-architecture` domain focuses on product planning visualization: strategic timelines, portfolio prioritization, KPI tracking, dependency/release management, governance gates, and scenario-based investment views.
 
 The `gtm-architecture` domain covers Go-to-Market communication diagrams: value proposition, competitive positioning, solution architecture, ROI proof, GTM strategy, and category/analyst narrative — used in white papers, solution briefs, battle cards, and market PR materials.
 
+The `bpmn-architecture` domain covers BPMN 2.0 process modeling diagrams: multi-pool collaboration, orchestration flows, sub-processes, swimlanes, choreography, conversation maps, event/gateway patterns, transaction/compensation, and human-vs-system automation split. Based on OMG BPMN 2.0.2 formal specification.
+
 Routing hint: When the request is about roadmap, release plan, initiative prioritization, KPI milestone, governance gate, risk board, capability evolution, or investment scenario → route to `roadmap-architecture`.
 
 Routing hint: When the request is about market positioning, buyer persuasion, competitive differentiation, solution storytelling, ROI business case, customer journey, ICP segmentation, GTM strategy, or analyst briefing → route to `gtm-architecture`.
+
+Routing hint: When the request is about business process modeling, BPMN notation, workflow visualization, approval/escalation flow, process collaboration, choreography, lane-based task assignment, compensation/transaction, or human-vs-system automation → route to `bpmn-architecture`.
 
 ## Loader Architecture (Data Driven)
 
@@ -48,6 +53,11 @@ Pattern:
 2. Rounded rectangle corner radius must be small by default.
 3. No decorative-only shapes or lines. Every line must carry semantics.
 4. All visual colors (fill, line, text) must come from the active master theme via `ctx.colors` / `ctx.palette`. Only TOGAF-spec reserved semantic colors (RACI R/A/C/I, journey emotion +/~/−) may be loader-defined, and those are also derived from theme accents via `_semantic_from_theme()`.
+5. For swimlane/process diagrams, prioritize reusable layout heuristics over case-by-case placement: keep activity boxes globally size-consistent, align semantically related nodes across adjacent lanes on shared centerlines, and distribute the flow evenly across the usable canvas to avoid large right-side whitespace.
+6. All geometry constants are authored on base canvas 10.0" x 5.625" and must be adapted to actual master size at render time; do not assume fixed slide dimensions.
+7. Dark-theme rendering must enforce high contrast by separating edge/connector color from body text color (for example, stroke vs ink semantics).
+8. Flow/dependency/sequence/interactions connectors default to curved style (`MSO_CONNECTOR_TYPE.CURVE`) unless a diagram spec requires strict notation with another connector type.
+9. Release candidate decks must pass business overflow gate with raw overflow = 0 and business overflow = 0.
 
 ## Routing Hint
 

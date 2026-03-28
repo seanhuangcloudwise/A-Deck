@@ -10,6 +10,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 from renderer_utils import shape_rect, textbox
+from semantic_layout_constraints import apply_semantic_constraints_emu  # pyright: ignore[reportMissingImports]
 
 def set_subtitle(ctx, slide, text, gray_color=None):
     subtitle_ph = next((s for s in slide.shapes if getattr(s, "is_placeholder", False) and s.placeholder_format.idx == 1), None)
@@ -33,14 +34,37 @@ def load_slide(ctx, data):
     content = data.get("content", {})
     nodes = content.get("nodes", [])
     edges = content.get("edges", [])
+    semantic_constraints = content.get("semantic_constraints")
 
-    # Draw nodes
-    pos = {}
+    raw_positions = {}
     for n in nodes[:12]:
         x = int(Inches(float(n.get("x", 1.0))))
         y = int(Inches(float(n.get("y", 2.0))))
         w = int(Inches(1.3))
         h = int(Inches(0.4))
+        raw_positions[n.get("id", "")] = (x, y, w, h)
+
+    if semantic_constraints:
+        region_in = {
+            "left": 0.55,
+            "top": 1.45,
+            "width": 8.4,
+            "height": 3.9,
+        }
+        raw_positions = apply_semantic_constraints_emu(
+            raw_positions,
+            nodes,
+            region_in,
+            semantic_constraints,
+        )
+
+    # Draw nodes
+    pos = {}
+    for n in nodes[:12]:
+        x, y, w, h = raw_positions.get(
+            n.get("id", ""),
+            (int(Inches(float(n.get("x", 1.0)))), int(Inches(float(n.get("y", 2.0)))), int(Inches(1.3)), int(Inches(0.4))),
+        )
         is_critical = bool(n.get("critical", False))
         shape_rect(slide, x, y, w, h, fill_color=_CRITICAL if is_critical else C["dark"])
         textbox(slide, x + int(Inches(0.03)), y + int(Inches(0.09)), w - int(Inches(0.06)), int(Inches(0.2)), n.get("label", ""), size="label", color=C["white"])

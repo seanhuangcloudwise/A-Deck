@@ -24,7 +24,17 @@ Isolation: only stdlib, no pptx or skill imports.
 
 from __future__ import annotations
 from collections import defaultdict
+import sys
+from pathlib import Path
+from typing import Any, Callable
 from pptx.util import Inches
+
+_HERE = Path(__file__).resolve().parent
+_SHARED = _HERE.parent.parent / "shared"
+if str(_SHARED) not in sys.path:
+    sys.path.insert(0, str(_SHARED))
+
+from semantic_layout_constraints import apply_semantic_constraints_emu  # pyright: ignore[reportMissingImports]
 
 
 def emu(inches: float) -> int:
@@ -40,6 +50,9 @@ def auto_layout(
     node_sizes: dict | None = None,
     lanes: list[str] | None = None,
     flow_dir: str = "LR",   # LR (left-to-right) or TB (top-to-bottom)
+    layout_backend: str = "native",  # native | elk | auto
+    backend_options: dict | None = None,
+    semantic_constraints: dict | None = None,
 ) -> dict[str, tuple[int, int, int, int]]:
     """
     Return EMU positions for each node: {id: (left, top, width, height)}.
@@ -53,6 +66,50 @@ def auto_layout(
     lanes : ordered lane id list; nodes with "lane" field are band-constrained
     flow_dir : "LR" (default) or "TB"
     """
+    backend = _normalize_backend(layout_backend)
+    opts = backend_options or {}
+
+    if backend == "elk":
+        elk_positions = _auto_layout_elk(
+            nodes=nodes,
+            edges=edges,
+            region=region,
+            node_sizes=node_sizes,
+            lanes=lanes,
+            flow_dir=flow_dir,
+            backend_options=opts,
+        )
+        if elk_positions:
+            return _apply_semantic_constraints(elk_positions, nodes, region, semantic_constraints)
+
+    native_positions = _auto_layout_native(
+        nodes=nodes,
+        edges=edges,
+        region=region,
+        node_sizes=node_sizes,
+        lanes=lanes,
+        flow_dir=flow_dir,
+    )
+    return _apply_semantic_constraints(native_positions, nodes, region, semantic_constraints)
+
+
+def _normalize_backend(layout_backend: str) -> str:
+    backend = (layout_backend or "native").strip().lower()
+    if backend == "auto":
+        return "elk"
+    if backend not in {"native", "elk"}:
+        return "native"
+    return backend
+
+
+def _auto_layout_native(
+    nodes: list[dict],
+    edges: list[dict],
+    region: dict,
+    node_sizes: dict | None,
+    lanes: list[str] | None,
+    flow_dir: str,
+) -> dict[str, tuple[int, int, int, int]]:
     if not nodes:
         return {}
 
@@ -89,6 +146,224 @@ def auto_layout(
     )
 
     return positions
+
+
+def _auto_layout_elk(
+    nodes: list[dict],
+    edges: list[dict],
+    region: dict,
+    node_sizes: dict | None,
+    lanes: list[str] | None,
+    flow_dir: str,
+    backend_options: dict,
+) -> dict[str, tuple[int, int, int, int]] | None:
+    """Optional ELK adapter hook.
+
+    This function intentionally avoids hard-binding to a specific ELK package.
+    If no adapter is provided, caller should safely fall back to native layout.
+    """
+    adapter = backend_options.get("adapter")
+    if not callable(adapter):
+        return None
+
+    result = adapter(
+        nodes=nodes,
+        edges=edges,
+        region=region,
+        node_sizes=node_sizes or {},
+        lanes=lanes or [],
+        flow_dir=flow_dir,
+        emu_fn=emu,
+    )
+    if not isinstance(result, dict):
+        return None
+    return result
+
+
+def _apply_semantic_constraints(
+    positions: dict[str, tuple[int, int, int, int]],
+    nodes: list[dict],
+    region: dict,
+    semantic_constraints: dict | None,
+) -> dict[str, tuple[int, int, int, int]]:
+    return apply_semantic_constraints_emu(positions, nodes, region, semantic_constraints)
+
+
+def _apply_branch_attr_spread(
+    positions: dict[str, tuple[int, int, int, int]],
+    nodes: list[dict],
+    region: dict,
+    constraints: dict,
+) -> dict[str, tuple[int, int, int, int]]:
+    branch_attr = constraints.get("branch_attr")
+    if not branch_attr:
+        return positions
+
+    values = sorted({n.get(branch_attr) for n in nodes if n.get(branch_attr) is not None})
+    if not values:
+        return positions
+
+    index = {value: i for i, value in enumerate(values)}
+    count = len(values)
+
+    center_ratio = float(constraints.get("branch_center_ratio", 0.52))
+    spread_ratio = float(constraints.get("branch_spread_ratio", 0.28))
+    spread_max_in = float(constraints.get("branch_spread_max_in", 0.66))
+
+    r_top = float(region["top"])
+    r_h = float(region["height"])
+    center_y = r_top + r_h * center_ratio
+    spread = min(r_h * spread_ratio, spread_max_in)
+
+    if count == 1:
+        offsets = {values[0]: 0.0}
+    else:
+        step = (spread * 2.0) / (count - 1)
+        offsets = {v: (-spread + index[v] * step) for v in values}
+
+    adjusted = dict(positions)
+    node_by_id = {n.get("id"): n for n in nodes}
+
+    for nid, box in positions.items():
+        node = node_by_id.get(nid)
+        if not node:
+            continue
+        val = node.get(branch_attr)
+        if val is None or val not in offsets:
+            continue
+        left, top, w, h = box
+        h_in = h / 914400
+        new_top = emu(center_y + offsets[val] - h_in / 2.0)
+        adjusted[nid] = (left, new_top, w, h)
+
+    return adjusted
+
+
+def _apply_lane_bands(
+    positions: dict[str, tuple[int, int, int, int]],
+    nodes: list[dict],
+    region: dict,
+    lane_attr: str,
+    lane_order: list[str],
+) -> dict[str, tuple[int, int, int, int]]:
+    if not lane_order:
+        return positions
+
+    lane_index = {lid: i for i, lid in enumerate(lane_order)}
+    lane_count = max(1, len(lane_order))
+    r_top = float(region["top"])
+    r_h = float(region["height"])
+    band_h = r_h / lane_count
+
+    node_by_id = {n.get("id"): n for n in nodes}
+    adjusted = dict(positions)
+
+    for nid, box in positions.items():
+        node = node_by_id.get(nid)
+        if not node:
+            continue
+        lane_id = node.get(lane_attr)
+        if lane_id not in lane_index:
+            continue
+        idx = lane_index[lane_id]
+        left, top, w, h = box
+        h_in = h / 914400
+        center_y = r_top + idx * band_h + band_h / 2.0
+        new_top = emu(center_y - h_in / 2.0)
+        adjusted[nid] = (left, new_top, w, h)
+
+    return adjusted
+
+
+def _apply_container_clamp(
+    positions: dict[str, tuple[int, int, int, int]],
+    nodes: list[dict],
+    container_regions: list[dict],
+    container_attr: str | None = None,
+) -> dict[str, tuple[int, int, int, int]]:
+    adjusted = dict(positions)
+    node_by_id = {n.get("id"): n for n in nodes if n.get("id")}
+
+    regions_by_id = {}
+    ordered = []
+    for idx, r in enumerate(container_regions):
+        rid = r.get("id") or f"container_{idx}"
+        entry = dict(r)
+        entry["id"] = rid
+        regions_by_id[rid] = entry
+        ordered.append(entry)
+
+    def _bounds(region_entry):
+        left = float(region_entry.get("left", 0.0))
+        top = float(region_entry.get("top", 0.0))
+        width = float(region_entry.get("width", 0.0))
+        height = float(region_entry.get("height", 0.0))
+        if width <= 0 or height <= 0:
+            return None
+        min_x = left
+        min_y = top
+        max_x = left + width
+        max_y = top + height
+
+        parent_id = region_entry.get("parent_id")
+        if parent_id and parent_id in regions_by_id:
+            parent = _bounds(regions_by_id[parent_id])
+            if parent is not None:
+                pmin_x, pmin_y, pmax_x, pmax_y = parent
+                min_x = max(min_x, pmin_x)
+                min_y = max(min_y, pmin_y)
+                max_x = min(max_x, pmax_x)
+                max_y = min(max_y, pmax_y)
+
+        return (min_x, min_y, max_x, max_y)
+
+    cached_bounds = {r["id"]: _bounds(r) for r in ordered}
+
+    for region in ordered:
+        bounds = cached_bounds.get(region["id"])
+        if bounds is None:
+            continue
+        min_x, min_y, max_x, max_y = bounds
+
+        pad = float(region.get("padding_in", 0.0))
+        min_x += pad
+        min_y += pad
+        max_x -= pad
+        max_y -= pad
+        if max_x <= min_x or max_y <= min_y:
+            continue
+
+        node_ids = list(region.get("node_ids", []))
+        if container_attr:
+            node_ids.extend([
+                nid for nid, node in node_by_id.items()
+                if node.get(container_attr) == region["id"]
+            ])
+        # de-duplicate while preserving order
+        node_ids = list(dict.fromkeys(node_ids))
+
+
+        for nid in node_ids:
+            if nid not in adjusted:
+                continue
+            x, y, w, h = adjusted[nid]
+            x_in = x / 914400
+            y_in = y / 914400
+            w_in = w / 914400
+            h_in = h / 914400
+
+            if x_in < min_x:
+                x_in = min_x
+            if y_in < min_y:
+                y_in = min_y
+            if x_in + w_in > max_x:
+                x_in = max(min_x, max_x - w_in)
+            if y_in + h_in > max_y:
+                y_in = max(min_y, max_y - h_in)
+
+            adjusted[nid] = (emu(x_in), emu(y_in), w, h)
+
+    return adjusted
 
 
 # ── Default node sizes (inches) ──────────────────────────────────────────

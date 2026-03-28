@@ -133,35 +133,64 @@ sections:
         subtitle: "关键链路与阻塞点"
         content:
           note: "Critical path: S1 -> S2 -> S4 -> S6"
+          semantic_constraints:
+            lane_attr: lane
+            lane_order: [critical, support]
+            container_attr: container
+            container_regions:
+              - id: critical_lane
+                left: 0.62
+                top: 1.55
+                width: 7.8
+                height: 1.62
+                padding_in: 0.04
+              - id: support_lane
+                left: 0.62
+                top: 3.05
+                width: 7.8
+                height: 1.62
+                padding_in: 0.04
           nodes:
             - id: "S1"
               label: "Architecture Baseline"
               x: 0.8
               y: 1.8
               critical: true
+              lane: critical
+              container: critical_lane
             - id: "S2"
               label: "Data Foundation"
               x: 2.6
               y: 1.8
               critical: true
+              lane: critical
+              container: critical_lane
             - id: "S3"
               label: "Template API"
               x: 2.6
               y: 3.0
+              lane: support
+              container: support_lane
             - id: "S4"
               label: "AI Orchestration"
               x: 4.4
               y: 1.8
               critical: true
+              lane: critical
+              container: critical_lane
             - id: "S5"
               label: "Ops Console"
               x: 4.4
               y: 3.0
+              lane: support
+              container: support_lane
             - id: "S6"
               label: "GA Readiness"
               x: 6.2
               y: 2.4
               critical: true
+              lane: critical
+              container: critical_lane
           edges:
             - from: "S1"
               to: "S2"

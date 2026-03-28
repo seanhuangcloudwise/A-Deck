@@ -392,14 +392,14 @@ sections:
           transaction:
             label: "资金划转事务"
             internal_nodes:
-              - { id: ts,       type: start_event,    x_in: 0.3 }
-              - { id: debit,    label: "借方扣款",    type: task,          x_in: 1.2 }
-              - { id: fx,       label: "汇率换算",    type: service_task,  x_in: 2.4 }
-              - { id: credit,   label: "贷方入账",    type: task,          x_in: 3.6 }
-              - { id: gw_ok,    type: exclusive_gateway,                   x_in: 4.8 }
-              - { id: receipt,  label: "生成回单",    type: script_task,   x_in: 5.6,  y_branch: 0 }
-              - { id: te_ok,    type: end_event,                           x_in: 6.4,  y_branch: 0 }
-              - { id: te_cancel, type: cancel_end_event,                   x_in: 5.6,  y_branch: 1 }
+              - { id: ts,       type: start_event,    x_in: 0.3,  container: tx_internal }
+              - { id: debit,    label: "借方扣款",    type: task,          x_in: 1.2,  container: tx_internal }
+              - { id: fx,       label: "汇率换算",    type: service_task,  x_in: 2.4,  container: tx_internal }
+              - { id: credit,   label: "贷方入账",    type: task,          x_in: 3.6,  container: tx_internal }
+              - { id: gw_ok,    type: exclusive_gateway,                   x_in: 4.8,  container: tx_internal }
+              - { id: receipt,  label: "生成回单",    type: script_task,   x_in: 5.6,  y_branch: 0, container: tx_internal }
+              - { id: te_ok,    type: end_event,                           x_in: 6.4,  y_branch: 0, container: tx_internal }
+              - { id: te_cancel, type: cancel_end_event,                   x_in: 5.6,  y_branch: 1, container: tx_internal }
             internal_flows:
               - { from: ts,      to: debit }
               - { from: debit,   to: fx }

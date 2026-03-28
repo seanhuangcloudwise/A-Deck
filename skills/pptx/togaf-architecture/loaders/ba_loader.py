@@ -31,6 +31,10 @@ _BA02_STAGES = [
 
 _BA03_PROCESS = {
     "lanes": ["业务方", "产品经理", "架构师", "系统"],
+    "semantic_constraints": {
+        "lane_attr": "lane",
+        "lane_order": ["业务方", "产品经理", "架构师", "系统"],
+    },
     "columns": 8,
     "nodes": [
         {"id": "start",  "type": "event",    "lane": "业务方",   "x_in": 0.02, "start": True},

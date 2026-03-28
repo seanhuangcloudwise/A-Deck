@@ -13,6 +13,7 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches as _Inches, Pt
 from lxml import etree as _etree
 from renderer_utils import shape_rect, textbox
+from semantic_layout_constraints import apply_semantic_constraints_emu  # pyright: ignore[reportMissingImports]
 
 _LEGACY_WIDTH_IN = 13.333
 _LEGACY_HEIGHT_IN = 7.5
@@ -555,6 +556,7 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
     end_event_outer_pad = int(Inches(content.get("end_event_outer_pad_in", 0.06)))
 
     node_map = {}
+    pending_nodes = []
     for node in nodes:
         lane_name = node.get("lane") or lane_names[min(int(node.get("lane_index", 0)), len(lane_names) - 1)]
         lane_box = lane_boxes.get(lane_name)
@@ -597,6 +599,45 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
         ny = min(ny, max_y)
 
         kind = node.get("type", "step")
+        node_id = node.get("id", f"node_{len(pending_nodes)}")
+        pending_nodes.append({
+            "id": node_id,
+            "node": node,
+            "kind": kind,
+            "node_w": node_w,
+            "node_h": node_h,
+            "nx": nx,
+            "ny": ny,
+        })
+
+    raw_positions = {
+        item["id"]: (item["nx"], item["ny"], item["node_w"], item["node_h"])
+        for item in pending_nodes
+    }
+    semantic_constraints = content.get("semantic_constraints")
+    if semantic_constraints:
+        region_in = {
+            "left": flow_x / 914400,
+            "top": y0 / 914400,
+            "width": flow_w / 914400,
+            "height": th / 914400,
+        }
+        raw_positions = apply_semantic_constraints_emu(
+            raw_positions,
+            nodes,
+            region_in,
+            semantic_constraints,
+        )
+
+    for item in pending_nodes:
+        node = item["node"]
+        kind = item["kind"]
+        node_id = item["id"]
+        nx, ny, node_w, node_h = raw_positions.get(
+            node_id,
+            (item["nx"], item["ny"], item["node_w"], item["node_h"]),
+        )
+
         if kind == "decision":
             shape = _bp_decision(
                 slide, nx, ny, node_w, node_h, node.get("text") or node.get("name", ""), C,
@@ -607,7 +648,7 @@ def _swimlane_detailed(slide, x0, y0, tw, th, content, C):
         else:
             shape = _bp_step(slide, nx, ny, node_w, node_h, node, C)
 
-        node_map[node.get("id", f"node_{len(node_map)}")] = {
+        node_map[node_id] = {
             "shape": shape,
             "box": (nx, ny, node_w, node_h),
             "kind": kind,

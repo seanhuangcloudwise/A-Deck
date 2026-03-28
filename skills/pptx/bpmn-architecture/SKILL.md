@@ -93,7 +93,7 @@ connect_msg(slide, node_boxes, src_id, dst_id, colors, label="")
 **CCW index mapping** (python-pptx internal):
 - 0 = top, 1 = **left**, 2 = bottom, 3 = **right** (counter-clockwise)
 
-**Connector type**: `MSO_CONNECTOR_TYPE.ELBOW` always. Never STRAIGHT.
+**Connector type**: `MSO_CONNECTOR_TYPE.CURVE` always. Never STRAIGHT.
 
 ## QA Checklist
 

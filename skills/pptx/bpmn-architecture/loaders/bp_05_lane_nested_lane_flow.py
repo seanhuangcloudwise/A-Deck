@@ -6,6 +6,7 @@ Official anchor: OMG BPMN 2.0 by Example §10.3, formal spec §10.8.
 Isolation: imports only from local primitives/style_tokens.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from primitives import (
     set_title_subtitle, fit_x_scale, connect_seq, slide_scale,
 )
 from layout_engine import auto_layout
+from elk_adapter import elk_layered_adapter
 from style_tokens import resolve_colors, Size, LineWidth, FontSize
 from pptx.util import Pt
 from pptx.enum.shapes import MSO_CONNECTOR_TYPE
@@ -37,6 +39,7 @@ def load_slide(ctx, data):
     lanes = content.get("lanes", [])
     nodes = content.get("nodes", [])
     flows = content.get("flows", [])
+    layout_backend = content.get("layout_backend") or os.getenv("BPMN_LAYOUT_BACKEND", "native")
 
     # --- Geometry ---
     sx, sy, su = slide_scale(prs)
@@ -124,6 +127,12 @@ def load_slide(ctx, data):
             "gateway": (Size.GATEWAY_SIZE * su, Size.GATEWAY_SIZE * su),
         },
         lanes=lane_ids,
+        layout_backend=layout_backend,
+        backend_options={"adapter": elk_layered_adapter},
+        semantic_constraints={
+            "lane_attr": "lane",
+            "lane_order": lane_ids,
+        },
     )
 
     node_boxes = {}

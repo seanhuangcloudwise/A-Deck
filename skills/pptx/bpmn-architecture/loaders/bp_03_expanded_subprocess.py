@@ -57,6 +57,7 @@ def load_slide(ctx, data):
         parent_flows = content.get("parent_flows", [])
         boundary_events = sp_cfg.get("boundary_events", [])
         exception_flows = content.get("exception_flows", [])
+        sp_id = sp_cfg.get("id", "subprocess")
 
         # Subprocess rectangle
         sp_x = margin_l + emu(sp_cfg.get("x", 1.5) * sx)
@@ -73,8 +74,8 @@ def load_slide(ctx, data):
                          text=sp_cfg.get("label", "Sub-Process"),
                          font_size=FontSize.TASK_LABEL,
                          font_color=C["primary"], bold=True)
-        node_boxes[sp_cfg["id"]] = (sp_x + sp_w // 2, sp_y + sp_h // 2,
-                                    sp_w, sp_h, sp_shape)
+        node_boxes[sp_id] = (sp_x + sp_w // 2, sp_y + sp_h // 2,
+                             sp_w, sp_h, sp_shape)
 
         # Internal nodes — auto layout within subprocess rectangle
         itw = emu(Size.TASK_W_COMPACT)
@@ -130,7 +131,7 @@ def load_slide(ctx, data):
                         label=iflow.get("label", ""))
 
         # Parent nodes — auto layout in the full slide region
-        all_parent_and_sp = parent_nodes + [{"id": sp_cfg["id"], "type": "subprocess"}]
+        all_parent_and_sp = parent_nodes + [{"id": sp_id, "type": "subprocess"}]
         parent_flows_ext = list(parent_flows)
         parent_region = {
             "left": 0.4 * sx, "top": base_y / 914400,

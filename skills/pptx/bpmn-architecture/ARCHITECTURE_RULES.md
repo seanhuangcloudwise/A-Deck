@@ -56,6 +56,14 @@ Common content keys:
 **All loaders that render nodes + flows MUST use `auto_layout()` from `layout_engine.py`.**
 Do not hardcode `x_in` / `y_in` pixel positions; let the layout engine compute positions.
 
+### Layout backend switch (pilot)
+- `auto_layout()` supports `layout_backend="native" | "elk" | "auto"`.
+- Default backend is `native`.
+- `elk` is an optional adapter path and must fail-safe to native layout if adapter is unavailable.
+- Pilot usage is enabled per-slide through content field `layout_backend` or env `BPMN_LAYOUT_BACKEND`.
+- ELK-specific coordinate post-processing must live in `layout_engine.py` / `elk_adapter.py`, not in diagram loaders.
+- Loaders may pass semantic metadata only (e.g., branch/lane/container constraints) through `auto_layout()`.
+
 ### auto_layout() contract
 ```python
 from layout_engine import auto_layout
@@ -66,6 +74,8 @@ positions = auto_layout(
     region={"left": float, "top": float, "width": float, "height": float},  # inches
     node_sizes={"task": (w, h), "event": (d, d), "gateway": (s, s)},       # inches
     lanes=["lane_id_1", "lane_id_2"],  # optional, ordered list
+  layout_backend="native",
+    semantic_constraints={"branch_attr": "y_branch"},
 )
 # Returns {node_id: (left_emu, top_emu, width_emu, height_emu)}
 ```

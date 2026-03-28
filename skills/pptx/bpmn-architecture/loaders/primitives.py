@@ -548,7 +548,7 @@ def _set_text(shape, text, font_size, font_color, bold, alignment, anchor):
         pass
     p = tf.paragraphs[0]
     p.text = text
-    p.font.size = font_size
+    p.font.size = _fit_font_size(shape.width, shape.height, text, font_size)
     if font_color:
         p.font.color.rgb = _to_rgb(font_color)
     p.font.bold = bold
@@ -558,6 +558,41 @@ def _set_text(shape, text, font_size, font_color, bold, alignment, anchor):
         tf.paragraphs[0].space_after = Pt(0)
     except Exception:
         pass
+
+
+def _fit_font_size(width_emu, height_emu, text, base_font_size):
+    """Shrink font conservatively for narrow boxes and dense labels."""
+    try:
+        base_pt = float(base_font_size.pt)
+    except Exception:
+        base_pt = float(base_font_size)
+
+    content = str(text or "").replace("\n", "")
+    if not content:
+        return Pt(base_pt)
+
+    width_in = width_emu / _EMU_PER_INCH
+    height_in = height_emu / _EMU_PER_INCH
+    text_len = len(content)
+    cjk_len = sum(1 for ch in content if ord(ch) > 127)
+
+    shrink = 0.0
+    if width_in < 1.0:
+        shrink += 0.5
+    if width_in < 0.85:
+        shrink += 0.75
+    if width_in < 0.7:
+        shrink += 0.75
+    if height_in < 0.42:
+        shrink += 0.5
+    if text_len > 10:
+        shrink += 0.5
+    if text_len > 16:
+        shrink += 0.5
+    if cjk_len >= 4 and width_in < 0.9:
+        shrink += 0.75
+
+    return Pt(max(5.5, base_pt - shrink))
 
 
 def _add_label_near_line(slide, x1, y1, x2, y2, text, colors, font_size, italic=False):

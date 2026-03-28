@@ -6,6 +6,7 @@ Official anchor: OMG BPMN 2.0 by Example — Shipment Process, Travel Booking.
 Isolation: imports only from local primitives/style_tokens.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from primitives import (
     connect_seq, slide_scale, scaled_region,
 )
 from layout_engine import auto_layout
+from elk_adapter import elk_layered_adapter
 from style_tokens import resolve_colors, Size, FontSize
 from pptx.util import Pt
 
@@ -34,6 +36,7 @@ def load_slide(ctx, data):
     content = data.get("content", {})
     nodes = content.get("nodes", [])
     flows = content.get("flows", [])
+    layout_backend = content.get("layout_backend") or os.getenv("BPMN_LAYOUT_BACKEND", "native")
 
     _, _, su = slide_scale(prs)
     ev_d = emu(Size.EVENT_DIAMETER * su)
@@ -51,6 +54,8 @@ def load_slide(ctx, data):
             "event": (Size.EVENT_DIAMETER * su, Size.EVENT_DIAMETER * su),
             "gateway": (Size.GATEWAY_SIZE * su, Size.GATEWAY_SIZE * su),
         },
+        layout_backend=layout_backend,
+        backend_options={"adapter": elk_layered_adapter},
     )
 
     node_boxes = {}

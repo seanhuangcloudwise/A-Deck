@@ -6,6 +6,7 @@ Official anchor: OMG BPMN 2.0.2 §10.7, §10.2.4, Examples §12 E-Mail Voting.
 Isolation: imports only from local primitives/style_tokens.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from primitives import (
     connect_seq, edge_endpoints, slide_scale,
 )
 from layout_engine import auto_layout
+from elk_adapter import elk_layered_adapter
 from style_tokens import resolve_colors, Size, LineWidth, FontSize
 from pptx.util import Pt
 
@@ -36,6 +38,7 @@ def load_slide(ctx, data):
     comp_handlers = content.get("compensation_handlers", [])
     boundary_events = content.get("boundary_events", [])
     exception_flows = content.get("exception_flows", [])
+    layout_backend = content.get("layout_backend") or os.getenv("BPMN_LAYOUT_BACKEND", "native")
 
     sx, sy, su = slide_scale(prs)
     margin_l = emu(0.6 * sx)
@@ -92,6 +95,22 @@ def load_slide(ctx, data):
             "task": (Size.TASK_W_COMPACT * su, Size.TASK_H_COMPACT * su),
             "event": (Size.EVENT_DIAMETER * su, Size.EVENT_DIAMETER * su),
             "gateway": (Size.GATEWAY_SIZE * su, Size.GATEWAY_SIZE * su),
+        },
+        layout_backend=layout_backend,
+        backend_options={"adapter": elk_layered_adapter},
+        semantic_constraints={
+            "container_attr": "container",
+            "container_regions": [
+                {
+                    "id": "tx_internal",
+                    "left": tx_region["left"],
+                    "top": tx_region["top"],
+                    "width": tx_region["width"],
+                    "height": tx_region["height"],
+                    "padding_in": 0.04,
+                    "node_ids": [n.get("id") for n in int_nodes if n.get("id")],
+                }
+            ]
         },
     )
 

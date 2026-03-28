@@ -6,6 +6,7 @@ Official anchor: OMG BPMN 2.0.2 §10.5–10.6, Examples §6/§9 incident/travel.
 Isolation: imports only from local primitives/style_tokens.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -16,9 +17,10 @@ if str(_HERE) not in sys.path:
 from primitives import (
     emu, add_rounded_rect, add_start_event, add_end_event, add_task,
     add_gateway, add_sequence_flow, add_circle, add_intermediate_event,
-    set_title_subtitle, connect_seq, slide_scale,
+    set_title_subtitle, connect_seq, slide_scale, scaled_region,
 )
 from layout_engine import auto_layout
+from elk_adapter import elk_layered_adapter
 from style_tokens import resolve_colors, Size, FontSize
 from pptx.util import Pt
 
@@ -34,18 +36,19 @@ def load_slide(ctx, data):
     content = data.get("content", {})
     variant = content.get("variant", "pattern_card")
     patterns = content.get("patterns", [])
+    layout_backend = content.get("layout_backend") or os.getenv("BPMN_LAYOUT_BACKEND", "native")
 
     if variant == "pattern_card":
-        _render_pattern_cards(prs, slide, patterns, C)
+        _render_pattern_cards(prs, slide, patterns, C, layout_backend)
     else:
         # Combined flow variant: treat patterns[0] as a single flow
         if patterns:
-            _render_single_pattern(prs, slide, patterns[0], C, full_slide=True)
+            _render_single_pattern(prs, slide, patterns[0], C, layout_backend, full_slide=True)
 
     return slide
 
 
-def _render_pattern_cards(prs, slide, patterns, C):
+def _render_pattern_cards(prs, slide, patterns, C, layout_backend):
     """Render multiple small pattern cards in a grid."""
     n = len(patterns)
     cols = 2
@@ -80,10 +83,17 @@ def _render_pattern_cards(prs, slide, patterns, C):
                          font_color=C["primary"], bold=True)
 
         # Render mini-flow inside card
-        _render_single_pattern(prs, slide, pattern, C, region=(cx, cy + emu(0.3 * sy), card_w, card_h - emu(0.35 * sy)))
+        _render_single_pattern(
+            prs,
+            slide,
+            pattern,
+            C,
+            layout_backend,
+            region=(cx, cy + emu(0.3 * sy), card_w, card_h - emu(0.35 * sy)),
+        )
 
 
-def _render_single_pattern(prs, slide, pattern, C, region=None, full_slide=False):
+def _render_single_pattern(prs, slide, pattern, C, layout_backend, region=None, full_slide=False):
     """Render a single pattern's nodes and flows within a region."""
     nodes = pattern.get("nodes", [])
     flows = pattern.get("flows", [])
@@ -91,7 +101,9 @@ def _render_single_pattern(prs, slide, pattern, C, region=None, full_slide=False
     sx, sy, su = slide_scale(prs)
 
     if full_slide:
-        ox, oy, rw, rh = emu(0.6 * sx), emu(1.5 * sy), 8.5 * sx, 3.0 * sy
+        reg = scaled_region(prs, 0.6, 1.5, 8.5, 3.0)
+        ox, oy = reg["left"], reg["top"]
+        rw, rh = reg["width"], reg["height"]
         scale = 1.0
     elif region:
         ox, oy, rw_emu, rh_emu = region
@@ -119,6 +131,14 @@ def _render_single_pattern(prs, slide, pattern, C, region=None, full_slide=False
             "task": (0.8 * su * scale, 0.35 * su * scale),
             "event": (0.18 * su * scale, 0.18 * su * scale),
             "gateway": (0.25 * su * scale, 0.25 * su * scale),
+        },
+        layout_backend=layout_backend,
+        backend_options={"adapter": elk_layered_adapter},
+        semantic_constraints={
+            "branch_attr": "y_branch",
+            "branch_center_ratio": 0.52,
+            "branch_spread_ratio": 0.28,
+            "branch_spread_max_in": 0.66,
         },
     )
 

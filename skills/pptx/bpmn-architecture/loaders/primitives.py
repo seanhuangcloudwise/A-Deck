@@ -213,7 +213,7 @@ def add_rounded_rect(slide, left, top, width, height, fill_rgb=None, line_rgb=No
 
 
 def add_circle(slide, cx, cy, diameter, fill_rgb=None, line_rgb=None,
-               line_width=Pt(1.5), text="", font_size=Pt(7)):
+               line_width=Pt(1.5), text="", font_size=Pt(7), font_color=None):
     """Add a circle centered at (cx, cy)."""
     r = diameter // 2
     shape = slide.shapes.add_shape(MSO_SHAPE.OVAL, cx - r, cy - r, diameter, diameter)
@@ -228,7 +228,7 @@ def add_circle(slide, cx, cy, diameter, fill_rgb=None, line_rgb=None,
     else:
         shape.line.fill.background()
     if text:
-        _set_text(shape, text, font_size, None, False, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
+        _set_text(shape, text, font_size, font_color, False, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
     return shape
 
 
@@ -253,7 +253,7 @@ def add_diamond(slide, cx, cy, size, fill_rgb=None, line_rgb=None,
 
 
 def add_hexagon(slide, left, top, width, height, fill_rgb=None, line_rgb=None,
-                line_width=Pt(1), text="", font_size=Pt(7)):
+                line_width=Pt(1), text="", font_size=Pt(7), font_color=None):
     """Add a hexagon (Conversation node)."""
     shape = slide.shapes.add_shape(MSO_SHAPE.HEXAGON, left, top, width, height)
     if fill_rgb:
@@ -265,7 +265,7 @@ def add_hexagon(slide, left, top, width, height, fill_rgb=None, line_rgb=None,
         shape.line.color.rgb = _to_rgb(line_rgb)
         shape.line.width = line_width
     if text:
-        _set_text(shape, text, font_size, None, False, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
+        _set_text(shape, text, font_size, font_color, False, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
     return shape
 
 
@@ -312,7 +312,8 @@ def add_task(slide, left, top, width, height, colors, label="", task_type="task"
     """BPMN Task — rounded rectangle with optional task type icon text."""
     fill = colors["white"]
     border = colors.get("stroke", colors["dark"])
-    text_color = colors.get("ink", colors["text"])
+    # Dynamic text color: white bg + dark text for readability
+    text_color = auto_text_color(fill, colors.get("ink", colors["dark"]), colors["white"])
     shape = add_rounded_rect(slide, left, top, width, height,
                              fill_rgb=fill, line_rgb=border,
                              line_width=Pt(1), corner_radius=Pt(4),
@@ -337,19 +338,23 @@ def add_gateway(slide, cx, cy, colors, gateway_type="exclusive", size=None):
     marker = markers.get(gateway_type, "")
     fill = colors["white"]
     border = colors.get("stroke", colors["dark"])
+    # Dynamic text color: white bg + dark text for readability
+    text_color = auto_text_color(fill, colors.get("ink", colors["dark"]), colors["white"])
     return add_diamond(slide, cx, cy, s, fill_rgb=fill, line_rgb=border,
                        line_width=Pt(1.25), marker_text=marker, font_size=Pt(9),
-                       font_color=colors.get("ink", colors.get("text", border)))
+                       font_color=text_color)
 
 
 def add_pool_header(slide, left, top, width, height, colors, name="", orientation="horizontal"):
     """Pool header strip."""
     fill = colors["primary"]
+    # Dynamic text color based on primary bg luminance
+    text_color = auto_text_color(fill, colors.get("ink", colors["dark"]), colors["white"])
     shape = add_rounded_rect(slide, left, top, width, height,
                              fill_rgb=fill, line_rgb=colors.get("stroke", colors["dark"]),
                              line_width=Pt(1), corner_radius=Pt(0),
                              text=name, font_size=Pt(11),
-                             font_color=colors["white"], bold=True)
+                             font_color=text_color, bold=True)
     if orientation == "vertical":
         shape.rotation = 270.0
     return shape

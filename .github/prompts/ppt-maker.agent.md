@@ -35,124 +35,124 @@ You are a professional PPT design engineer and presentation strategist. You crea
 🎨 **绘图库清单（92 个）**
 
 GTM 市场策略 (gm_*) × 35
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| GM-01 | 定位陈述 | Positioning Statement |
-| GM-02 | 价值金字塔 | Value Pyramid |
-| GM-03 | 前后对比 | Before / After Comparison |
-| GM-04 | 市场定位矩阵 | Market Positioning Matrix |
-| GM-05 | 竞争对比矩阵 | Competitive Comparison Matrix |
-| GM-06 | 市场生态图 | Market Ecosystem Map |
-| GM-07 | 解决方案参考架构 | Solution Reference Architecture |
-| GM-08 | 客户旅程触点 | Customer Journey Touchpoints |
-| GM-09 | 用例场景 | Use Case Scenario |
-| GM-10 | ROI 商业案例 | ROI Business Case |
-| GM-11 | KPI 看板 | KPI Dashboard Mockup |
-| GM-12 | 客户成功度量 | Customer Success Metrics |
-| GM-13 | GTM 运动图 | GTM Motion Diagram |
-| GM-14 | ICP 分层图 | ICP Segmentation Map |
-| GM-15 | 销售剧本流程 | Sales Playbook Flow |
-| GM-16 | 品类创建 | Category Creation |
-| GM-17 | 分析师简报框架 | Analyst Briefing Framework |
-| GM-18 | 功能能力矩阵 | Feature Capability Matrix |
-| GM-19 | 功能差异化雷达 | Feature Differentiation Radar |
-| GM-20 | 功能用例映射 | Feature Use Case Mapping |
-| GM-21 | 功能深度阶梯 | Feature Depth Ladder |
-| GM-22 | 独特机制图 | Unique Mechanism Diagram |
-| GM-23 | 功能采用漏斗 | Feature Adoption Funnel |
-| GM-24 | 功能发布时间线 | Feature Release Timeline |
-| GM-25 | 功能证明卡 | Feature Proof Card |
-| GM-26 | 价值驱动树 | Value Driver Tree |
-| GM-27 | 能力结果追踪矩阵 | Capability Outcome Trace Matrix |
-| GM-28 | 价值实现曲线 | Time to Value Curve |
-| GM-29 | 基线目标 KPI 表 | Baseline Target KPI Table |
-| GM-30 | 不行动成本表 | Cost of Inaction Table |
-| GM-31 | 收益实现路线图 | Benefit Realization Roadmap |
-| GM-32 | 画像价值地图 | Persona Value Map |
-| GM-33 | 风险降低热力图 | Risk Reduction Heatmap |
-| GM-34 | 证明证据阶梯 | Proof Evidence Ladder |
-| GM-35 | 假设敏感性表 | Assumption Sensitivity Table |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| GM-01 | 定位陈述 | 描述产品核心定位与价值主张，适用于对外发布或内部战略对齐 |
+| GM-02 | 价值金字塔 | 展示从功能到情感到意义的价值层级，适用于价值传递培训 |
+| GM-03 | 前后对比 | 引入方案前后状态对比，适用于商业案例和痛点说明 |
+| GM-04 | 市场定位矩阵 | 二维坐标中标记自身与竞品位置，适用于竞争态势分析 |
+| GM-05 | 竞争对比矩阵 | 多维度与竞品逐项对比，适用于销售支持和赢单分析 |
+| GM-06 | 市场生态图 | 展示生态系统各参与方及其关系，适用于市场全景介绍 |
+| GM-07 | 解决方案参考架构 | 呈现完整技术/业务方案层次，适用于方案交付和架构评审 |
+| GM-08 | 客户旅程触点 | 映射客户全生命周期各阶段接触点与情绪，适用于客户成功规划 |
+| GM-09 | 用例场景 | 描述产品在具体业务场景的使用方式和价值，适用于场景化演示 |
+| GM-10 | ROI 商业案例 | 量化展示投资回报和成本节约预测，适用于采购决策支持 |
+| GM-11 | KPI 看板 | 展示核心业绩指标当前状态与目标，适用于管理层汇报 |
+| GM-12 | 客户成功度量 | 量化客户实际获得的价值和成果，适用于续约和案例包装 |
+| GM-13 | GTM 运动图 | 展示推广、销售动作和渠道组合的整体机制，适用于GTM规划 |
+| GM-14 | ICP 分层图 | 定义理想客户画像的分层特征，适用于市场细分和销售聚焦 |
+| GM-15 | 销售剧本流程 | 分阶段呈现销售推进路径和关键动作，适用于销售培训 |
+| GM-16 | 品类创建 | 定义并构建新品类框架，适用于品牌战略和市场教育 |
+| GM-17 | 分析师简报框架 | 向分析机构介绍产品定位和市场视角，适用于分析师关系管理 |
+| GM-18 | 功能能力矩阵 | 列出产品功能与能力覆盖范围，适用于产品介绍和功能对比 |
+| GM-19 | 功能差异化雷达 | 雷达图呈现多维度功能优势，适用于差异化说明 |
+| GM-20 | 功能用例映射 | 将功能模块映射到具体业务场景，适用于方案设计和需求对齐 |
+| GM-21 | 功能深度阶梯 | 展示功能从基础到高级的深度层次，适用于产品成熟度说明 |
+| GM-22 | 独特机制图 | 可视化产品核心差异化技术/方法，适用于核心竞争力讲解 |
+| GM-23 | 功能采用漏斗 | 展示用户从认知到采用的转化路径，适用于产品增长分析 |
+| GM-24 | 功能发布时间线 | 按时间轴排列功能发布计划，适用于产品路线图沟通 |
+| GM-25 | 功能证明卡 | 以案例和数据证明单一功能价值，适用于销售对话支持 |
+| GM-26 | 价值驱动树 | 分解价值来源路径，追踪业务指标驱动因子，适用于价值量化 |
+| GM-27 | 能力结果追踪矩阵 | 将能力建设与业务结果对照追踪，适用于OKR和绩效评估 |
+| GM-28 | 价值实现曲线 | 展示方案上线后价值随时间积累的曲线，适用于预期管理 |
+| GM-29 | 基线目标 KPI 表 | 列出基准值与目标值对照，适用于项目启动和验收 |
+| GM-30 | 不行动成本表 | 量化不采购或不改变的隐性损失，适用于促成决策 |
+| GM-31 | 收益实现路线图 | 分阶段展示预期收益的实现时间和条件，适用于商业提案 |
+| GM-32 | 画像价值地图 | 针对不同角色展示差异化价值主张，适用于多利益相关方沟通 |
+| GM-33 | 风险降低热力图 | 热力图呈现各维度风险的降低程度，适用于风险沟通 |
+| GM-34 | 证明证据阶梯 | 从承诺到验证逐步积累证明材料，适用于信任建设 |
+| GM-35 | 假设敏感性表 | 列出关键假设及其对结果影响程度，适用于方案审查 |
 
 业务架构 (ba_*) × 9
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| BA-01 | 能力地图 | Capability Map |
-| BA-02 | 价值流 | Value Stream |
-| BA-03 | 业务流程 | Business Process |
-| BA-04 | 角色交互 | Actor Interaction |
-| BA-05 | 服务分解 | Service Decomposition |
-| BA-06 | 功能-能力映射 | Function Capability Mapping |
-| BA-07 | As-Is → To-Be | As-Is to Be |
-| BA-08 | 场景旅程 | Scenario Journey |
-| BA-09 | KPI 对齐 | KPI Alignment |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| BA-01 | 能力地图 | 展示组织/产品核心能力全景，适用于企业架构规划和能力评估 |
+| BA-02 | 价值流 | 端到端映射业务价值创造流程，适用于流程优化和精益分析 |
+| BA-03 | 业务流程 | 详细描述业务活动执行步骤和流向，适用于流程梳理和系统需求 |
+| BA-04 | 角色交互 | 展示多角色职责边界和交互关系，适用于RACI和协同设计 |
+| BA-05 | 服务分解 | 将业务服务分解为子服务树，适用于SOA设计和服务目录 |
+| BA-06 | 功能-能力映射 | 将IT功能与业务能力对齐，适用于IT与业务对话 |
+| BA-07 | As-Is → To-Be | 对比现状与目标状态展示变革路径，适用于变革管理 |
+| BA-08 | 场景旅程 | 描述特定业务场景下完整用户或系统旅程，适用于需求分析 |
+| BA-09 | KPI 对齐 | 将业务目标与KPI指标层层对应，适用于绩效体系设计 |
 
 应用架构 (aa_*) × 11
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| AA-01 | 应用全景图 | Application Landscape |
-| AA-02 | 组件图 | Component Diagram |
-| AA-03 | 集成地图 | Integration Map |
-| AA-04 | 限界上下文图 | Bounded Context Map |
-| AA-05 | 服务交互 | Service Interaction |
-| AA-06 | API 依赖图 | API Dependency Graph |
-| AA-07 | 事件驱动架构 | Event-Driven Architecture |
-| AA-08 | 微服务分解 | Microservice Decomposition |
-| AA-09 | 应用能力映射 | App Capability Mapping |
-| AA-10 | 应用序列流 | Application Sequence Flow |
-| AA-11 | 产品能力地图 | Product Capability Map |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| AA-01 | 应用全景图 | 展示企业内所有应用系统及其分布，适用于IT资产梳理 |
+| AA-02 | 组件图 | 展示系统内各组件及其依赖关系，适用于技术设计评审 |
+| AA-03 | 集成地图 | 描述系统间集成接口和数据流向，适用于集成方案设计 |
+| AA-04 | 限界上下文图 | DDD视角划分系统边界和上下文关系，适用于微服务规划 |
+| AA-05 | 服务交互 | 展示服务之间的调用和协作方式，适用于服务设计评审 |
+| AA-06 | API 依赖图 | 可视化API之间的依赖关系，适用于API治理和变更影响分析 |
+| AA-07 | 事件驱动架构 | 以事件为核心描述系统间异步通信，适用于EDA设计 |
+| AA-08 | 微服务分解 | 拆解单体应用为微服务边界，适用于微服务迁移规划 |
+| AA-09 | 应用能力映射 | 将应用功能与业务能力对应，适用于应用合理化分析 |
+| AA-10 | 应用序列流 | 时序图方式描述跨应用业务流程，适用于集成调试和方案说明 |
+| AA-11 | 产品能力地图 | 以产品视角展示能力模块全景，适用于产品规划和演示 |
 
 数据架构 (da_*) × 8
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| DA-01 | 概念数据模型 | Conceptual Data Model |
-| DA-02 | 逻辑数据模型 | Logical Data Model |
-| DA-03 | 数据流图 | Data Flow Diagram |
-| DA-04 | 数据域图 | Data Domain Map |
-| DA-05 | 数据治理框架 | Data Governance Framework |
-| DA-06 | 主数据生命周期 | Master Data Lifecycle |
-| DA-07 | 数据血缘 | Data Lineage |
-| DA-08 | 数据目录结构 | Data Catalog Structure |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| DA-01 | 概念数据模型 | 用业务语言描述核心数据概念及关系，适用于业务需求阶段 |
+| DA-02 | 逻辑数据模型 | 详细描述数据实体、属性和关系，适用于数据库设计 |
+| DA-03 | 数据流图 | 展示数据在系统中的流转路径，适用于数据架构评审 |
+| DA-04 | 数据域图 | 按业务域划分数据归属，适用于数据治理和数据主权规划 |
+| DA-05 | 数据治理框架 | 展示数据质量、安全、生命周期的治理体系，适用于数据战略 |
+| DA-06 | 主数据生命周期 | 描述主数据从创建到归档的全流程，适用于MDM规划 |
+| DA-07 | 数据血缘 | 追踪数据从源到目标的流转链路，适用于数据质量溯源 |
+| DA-08 | 数据目录结构 | 展示数据资产分类和目录体系，适用于数据资产管理 |
 
 技术架构 (ta_*) × 9
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| TA-01 | 基础设施拓扑 | Infrastructure Topology |
-| TA-02 | 部署架构 | Deployment Architecture |
-| TA-03 | 网络分区 | Network Zoning |
-| TA-04 | 云架构 | Cloud Architecture |
-| TA-05 | 容器编排 | Container Orchestration |
-| TA-06 | 安全架构 | Security Architecture |
-| TA-07 | 监控可观测性 | Monitoring & Observability |
-| TA-08 | 灾备方案 | Disaster Recovery |
-| TA-09 | 平台能力地图 | Platform Capability Map |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| TA-01 | 基础设施拓扑 | 展示物理/虚拟基础设施整体布局，适用于IT规划和运维 |
+| TA-02 | 部署架构 | 描述应用在基础设施上的部署方式，适用于发布和容量规划 |
+| TA-03 | 网络分区 | 展示网络安全区域划分和访问控制，适用于安全设计和合规 |
+| TA-04 | 云架构 | 描述云服务使用方式和架构模式，适用于云迁移和云原生方案 |
+| TA-05 | 容器编排 | 展示容器化应用的调度和管理架构，适用于K8s和DevOps方案 |
+| TA-06 | 安全架构 | 覆盖身份认证、授权、加密等安全控制，适用于安全方案评审 |
+| TA-07 | 监控可观测性 | 展示日志/指标/链路追踪的全栈可观测体系，适用于运维设计 |
+| TA-08 | 灾备方案 | 描述容灾恢复目标和切换机制，适用于业务连续性规划 |
+| TA-09 | 平台能力地图 | 展示技术平台对外提供的服务和能力全景，适用于平台化方案 |
 
 BPMN 流程 (bp_*) × 10
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| BP-01 | 协作概览 | Collaboration Overview |
-| BP-02 | 编排流 | Orchestration Flow |
-| BP-03 | 展开子流程 | Expanded Subprocess |
-| BP-04 | 折叠子流程/调用活动 | Collapsed Subprocess / Call Activity |
-| BP-05 | 泳道嵌套流 | Lane Nested Lane Flow |
-| BP-06 | 编排交互 | Choreography Interaction |
-| BP-07 | 会话地图 | Conversation Map |
-| BP-08 | 事件网关控制模式 | Event Gateway Control Pattern |
-| BP-09 | 补偿事务模式 | Compensation Transaction Pattern |
-| BP-10 | 人机分工 | Human / System Split |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| BP-01 | 协作概览 | 多参与方协作的高层流程视图，适用于业务流程说明和提案 |
+| BP-02 | 编排流 | 单参与方视角的完整业务流程，适用于系统需求和流程规范 |
+| BP-03 | 展开子流程 | 将复杂子流程展开详细描述，适用于流程细化和培训 |
+| BP-04 | 折叠子流程/调用活动 | 复用可重用流程片段，适用于流程模块化设计 |
+| BP-05 | 泳道嵌套流 | 多角色分泳道展示流程责任，适用于跨部门流程梳理 |
+| BP-06 | 编排交互 | 服务间的交互协议和消息顺序，适用于服务集成设计 |
+| BP-07 | 会话地图 | 展示参与方之间的高层通信关系，适用于业务协作架构 |
+| BP-08 | 事件网关控制模式 | 展示基于事件的条件分支控制，适用于规则引擎和决策流 |
+| BP-09 | 补偿事务模式 | 描述事务失败时的回滚和补偿机制，适用于分布式事务设计 |
+| BP-10 | 人机分工 | 明确人工操作与自动化系统的职责边界，适用于RPA和AI辅助方案 |
 
 路线图规划 (ra_*) × 10
-| ID | 绘图名称 | 说明 |
-|----|---------|------|
-| RA-01 | 战略时间线 | Strategic Timeline |
-| RA-02 | 组合热力矩阵 | Portfolio Heat Matrix |
-| RA-03 | KPI 里程碑阶梯 | KPI Milestone Ladder |
-| RA-04 | 能力演进 | Capability Evolution |
-| RA-05 | 依赖关键路径 | Dependency Critical Path |
-| RA-06 | 季度发布列车 | Release Train Quarterly |
-| RA-07 | 资源优先级矩阵 | Resource Priority Matrix |
-| RA-08 | 风险缓解看板 | Risk Mitigation Kanban |
-| RA-09 | 治理关口 | Governance Gate |
-| RA-10 | 场景投资 | Scenario Investment |
+| ID | 绘图名称 | 适用说明 |
+|----|---------|---------|
+| RA-01 | 战略时间线 | 以时间轴展示战略举措和里程碑，适用于年度规划和战略汇报 |
+| RA-02 | 组合热力矩阵 | 热力颜色展示多举措优先级和战略价值，适用于投资组合决策 |
+| RA-03 | KPI 里程碑阶梯 | KPI目标与时间里程碑结合，适用于OKR推进和绩效追踪 |
+| RA-04 | 能力演进 | 按阶段展示能力从现状到目标的成熟度演进，适用于转型规划 |
+| RA-05 | 依赖关键路径 | 分析项目交付的依赖链和关键路径，适用于项目计划和风险识别 |
+| RA-06 | 季度发布列车 | 展示季度内多团队发布节奏和交付计划，适用于SAFe/敏捷规划 |
+| RA-07 | 资源优先级矩阵 | 按价值/成本维度对资源和举措排序，适用于资源分配决策 |
+| RA-08 | 风险缓解看板 | 看板形式追踪风险状态和缓解行动，适用于项目风险管理 |
+| RA-09 | 治理关口 | 展示项目阶段交付物和决策关口，适用于项目治理和阶段评审 |
+| RA-10 | 场景投资 | 对比不同投资场景下的收益和风险，适用于预算申请和投资决策 |
 
 ---
 

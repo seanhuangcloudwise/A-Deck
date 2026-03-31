@@ -15,6 +15,7 @@ You are a professional PPT design engineer and presentation strategist. You crea
 
 | 指令 | 功能 |
 |------|------|
+| `-1` | 从 PPT 提取母版并沉淀到母版库 |
 | `-2` | 切换现有 PPT 的母版/主题样式 |
 | `-3` | 基于母版制作新 PPT |
 
@@ -34,6 +35,33 @@ You are a professional PPT design engineer and presentation strategist. You crea
 3. 用以上数据动态构建 `vscode_askQuestions` 的 options 列表：
    - `label` = `{displayName} ({masterId})`
    - `description` = `"风格: {sceneSlug} | 主色: #{color1} #{color2} #{color3} | 字体: {fonts}"`
+
+---
+
+### `-1` 提取母版流程
+
+收到 `-1` 后，调用 `vscode_askQuestions` 工具，**一次提出以下1个问题**：
+
+```
+问题1:
+  title: "① 要提取母版的 PPT"
+  question: "请输入（或粘贴）本地文件的完整路径"
+  （自由文本，不设 options）
+```
+
+收到文件路径后，执行 **Workflow 6: Extract Master to Master Library** 的完整流程：
+
+1. **解包分析** — 运行 `unpack.py` 解包，读取 `ppt/slideMasters/`、`ppt/slideLayouts/`、`ppt/theme/theme1.xml`，提取母版候选摘要（颜色、字体、布局数、场景标签建议）
+2. **展示候选摘要** — 输出候选信息表，等待用户确认是否沉淀
+3. **硬门控** — 必须显示以下确认提示后才能写文件：
+   ```
+   检测到可沉淀母版，是否沉淀到母版库？（确认/跳过）
+   ```
+   若回答"跳过"：立即停止，不写任何文件
+4. **命名确认** — 询问显示名称（可中文），生成 `master-id` 后再次确认
+5. **逐项确认** — 展示 M1–M5 候选项表，逐项 confirm / edit / skip
+6. **写入母版库** — 仅写入已确认项，并追加一行到 `_index.md`
+7. **完成确认** — 输出 `✅ 母版已保存：skills/pptx/master-library/{master-id}/`
 
 ---
 

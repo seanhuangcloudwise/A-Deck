@@ -52,12 +52,51 @@ When using an existing presentation as a template:
 | `clean.py` | Remove orphaned files |
 | `pack.py` | Repack with validation |
 | `thumbnail.py` | Create visual grid of slides |
+| `swap_theme.py` | Apply a master-library theme to an existing PPTX |
 
-### unpack.py
+### swap_theme.py
 
 ```bash
-python scripts/office/unpack.py input.pptx unpacked/
+python scripts/office/swap_theme.py <target.pptx> --from-preset <master-id> -o <out.pptx>
+python scripts/office/swap_theme.py <target.pptx> --from-pptx <master.pptx>  -o <out.pptx>
 ```
+
+Applies a theme from the master-library to any PPTX while preserving all slide content.
+
+**Modes:**
+
+| Mode | Flag | What changes |
+|------|------|--------------|
+| 1 (default) | _(none)_ | `theme1.xml` only |
+| 1 + remap | `--remap-colors` | Theme XML + hardcoded color remap in slides |
+| 2 | `--replace-layout "TARGET=SOURCE"` | Theme + specific slideLayout(s) |
+| 3 | `--with-master` | Theme + slideMaster1 + all slideLayouts |
+
+**`--remap-colors` (recommended for color-rich slides)** applies three layers automatically:
+1. **srgbClr slot map** — old accent hex values → new accent hex values
+2. **srgbClr family map** — custom non-neutral hardcoded colors → proportional tints of nearest target accent
+3. **schemeClr slot redirect** — slots resolving to off-brand colors redirected to nearest on-brand slot (e.g., `accent6=green → accent3=cyan`)
+
+Neutral colors (white, black, grays) are always preserved.
+
+```bash
+# List available master presets
+python scripts/office/swap_theme.py --list-presets
+
+# List layouts in a file
+python scripts/office/swap_theme.py --list-layouts input.pptx
+
+# Mode 1 (theme only)
+python scripts/office/swap_theme.py input.pptx --from-preset light-cloudwise-cyan -o out.pptx
+
+# Mode 1 + full color remap
+python scripts/office/swap_theme.py input.pptx --from-preset light-cloudwise-cyan -o out.pptx --remap-colors
+
+# Mode 3 (full master swap)
+python scripts/office/swap_theme.py input.pptx --from-preset light-cloudwise-purple -o out.pptx --with-master
+```
+
+
 
 Extracts PPTX, pretty-prints XML, escapes smart quotes.
 

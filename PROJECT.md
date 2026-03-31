@@ -6,12 +6,14 @@ This repository hosts A-Deck implementation assets, scripts, and architecture kn
 
 ## Canonical Specification / 主规范
 
-- Repository mirror (versioned): [docs/ppt-maker-agent-spec.md](docs/ppt-maker-agent-spec.md)
-- Runtime source (global): `~/Library/Application Support/Code/User/prompts/ppt-maker.agent.md`
+- **Workspace agent (primary)**: [.github/prompts/ppt-maker.agent.md](.github/prompts/ppt-maker.agent.md) — Copilot Agent，随仓库版本化，可直接在 VS Code 中调用
+- Repository spec mirror: [docs/ppt-maker-agent-spec.md](docs/ppt-maker-agent-spec.md)
+- Global fallback: `~/Library/Application Support/Code/User/prompts/ppt-maker.agent.md`
 
 Policy:
-- The global agent file is runtime source.
-- 本仓库中的 [docs/ppt-maker-agent-spec.md](docs/ppt-maker-agent-spec.md) 是可版本化镜像，用于协作与评审。
+- `.github/prompts/ppt-maker.agent.md` 是工作区级主源，随仓库版本化管理。
+- 全局文件保留作为跨工作区后备，与工作区文件保持同步。
+- 修改 agent 规范时，同步更新工作区文件和全局文件。
 
 ## Core Structure / 核心结构
 

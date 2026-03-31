@@ -25,6 +25,10 @@ Usage examples
   # Mode 1: theme colors only
   python swap_theme.py input.pptx --from-preset light-cloudwise-purple -o out.pptx
 
+  # Mode 1 + remap hardcoded colors (srgbClr hex + schemeClr slots in slides)
+  python swap_theme.py input.pptx --from-preset light-cloudwise-cyan -o out.pptx \\
+      --remap-colors
+
   # Mode 2: theme + specific layouts (repeatable, TARGET=SOURCE)
   #   Each SPEC = filename (slideLayout3.xml) | name (封面) | 1-based index
   python swap_theme.py input.pptx --from-preset light-cloudwise-purple -o out.pptx \\
@@ -41,6 +45,7 @@ Usage examples
 from __future__ import annotations
 
 import argparse
+import colorsys
 import hashlib
 import io
 import re
@@ -252,6 +257,249 @@ def _patch_content_types(ct_bytes: bytes, new_media_names: list[str]) -> bytes:
 
 
 # ---------------------------------------------------------------------------
+# Color remap helpers  (used by Mode 1 --remap-colors)
+# ---------------------------------------------------------------------------
+
+_COLOR_SLOTS = [
+    "dk1", "lt1", "dk2", "lt2",
+    "accent1", "accent2", "accent3", "accent4", "accent5", "accent6",
+    "hlink", "folHlink",
+]
+_BRAND_SLOTS = ["accent1", "accent2", "accent3", "accent4", "accent5", "accent6"]
+
+# Neutral hex values that are never remapped
+_ALWAYS_SKIP: set[str] = {
+    "FFFFFF", "000000", "FEFEFE", "010101",
+    "404040", "333333", "666666", "595959", "262626",
+    "A5A7AA", "AAAAAA", "999999", "CCCCCC", "DDDDDD",
+    "D9D9D9", "F2F2F2", "BFBFBF", "7F7F7F", "E7E6E6",
+}
+
+
+def _h2rgb(h: str) -> tuple[int, int, int]:
+    h = h.lstrip("#").upper()
+    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+
+def _rgb2h(r: float, g: float, b: float) -> str:
+    return "{:02X}{:02X}{:02X}".format(int(round(r)), int(round(g)), int(round(b)))
+
+
+def _lum(hex_str: str) -> float:
+    r, g, b = _h2rgb(hex_str)
+    return (max(r, g, b) + min(r, g, b)) / 2
+
+
+def _tint(base_hex: str, factor: float) -> str:
+    """Blend base_hex toward white by factor (0 = base, 1 = white)."""
+    r, g, b = _h2rgb(base_hex)
+    return _rgb2h(r + factor * (255 - r), g + factor * (255 - g), b + factor * (255 - b))
+
+
+def _tint_factor(base_hex: str, light_hex: str) -> float:
+    """Estimate how much light_hex is a tint of base_hex."""
+    br, bg, bb = _h2rgb(base_hex)
+    lr, lg, lb = _h2rgb(light_hex)
+    fs = [max(0.0, (lc - bc) / (255 - bc))
+          for bc, lc in [(br, lr), (bg, lg), (bb, lb)] if 255 - bc > 5]
+    return sum(fs) / len(fs) if fs else 0.5
+
+
+def _is_neutral(hex_str: str) -> bool:
+    """True if the color is near-white, near-black, or achromatic gray."""
+    h = hex_str.upper().lstrip("#")
+    if h in _ALWAYS_SKIP:
+        return True
+    r, g, b = _h2rgb(h)
+    mx = max(r, g, b)
+    sat = (mx - min(r, g, b)) / mx if mx > 0 else 0
+    lum = (mx + min(r, g, b)) / 2
+    # Near-black or fully achromatic → always neutral
+    if lum < 25 or sat < 0.07:
+        return True
+    # Near-white: only neutral if it's truly achromatic (sat very low)
+    # Light-tinted pastels (e.g. FDE9E8 = light pink) are NOT neutral
+    if lum > 238:
+        return sat < 0.05   # allow through if it has any visible hue tint
+    return False
+
+
+def _extract_theme_colors(z: zipfile.ZipFile) -> dict[str, str]:
+    """Return {slot: uppercase_hex} from theme1.xml inside a PPTX zip."""
+    ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
+    tp = sorted(n for n in z.namelist() if re.match(r"ppt/theme/theme\d+\.xml", n))
+    if not tp:
+        return {}
+    root = _parse_xml(z.read(tp[0]))
+    cs = root.find(f".//{{{ns}}}clrScheme")
+    if cs is None:
+        return {}
+    colors: dict[str, str] = {}
+    for slot in _COLOR_SLOTS:
+        el = cs.find(f"{{{ns}}}{slot}")
+        if el is None:
+            continue
+        sg = el.find(f"{{{ns}}}srgbClr")
+        if sg is not None:
+            colors[slot] = sg.get("val", "").upper()
+        else:
+            sc = el.find(f"{{{ns}}}sysClr")
+            if sc is not None:
+                colors[slot] = sc.get("lastClr", "").upper()
+    return colors
+
+
+def _parse_xml(data: bytes):  # type: ignore[return]
+    try:
+        from lxml import etree
+        return etree.fromstring(data)
+    except Exception:
+        import xml.etree.ElementTree as ET
+        return ET.fromstring(data)
+
+
+def build_slot_color_map(
+    old_colors: dict[str, str],
+    new_colors: dict[str, str],
+) -> dict[str, str]:
+    """Map old theme-slot hex values → new theme-slot hex values (skip neutrals)."""
+    m: dict[str, str] = {}
+    for slot in _COLOR_SLOTS:
+        o = old_colors.get(slot, "").upper()
+        n = new_colors.get(slot, "").upper()
+        if o and n and o != n and not _is_neutral(o):
+            m[o] = n
+    return m
+
+
+def build_family_color_map(
+    slides_bytes: list[bytes],
+    slot_map: dict[str, str],
+    target_bases: list[str],
+) -> dict[str, str]:
+    """
+    Detect non-neutral custom hardcoded srgbClr colors not covered by slot_map.
+    Group into hue families (±50°).  Map darkest per family to a distinct
+    target base, then compute proportional tints for lighter variants.
+    """
+    custom: set[str] = set()
+    for xml in slides_bytes:
+        for h in re.findall(rb'srgbClr val="([A-Fa-f0-9]{6})"', xml, re.I):
+            hx = h.decode().upper()
+            if not _is_neutral(hx) and hx not in slot_map:
+                custom.add(hx)
+
+    if not custom:
+        return {}
+
+    # Group by hue family
+    families: list[list[tuple[str, float, float]]] = []
+    for hx in sorted(custom):
+        r, g, b = _h2rgb(hx)
+        hv, sat, _ = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+        hue = hv * 360
+        placed = False
+        for fam in families:
+            avg_hue = sum(c[1] for c in fam) / len(fam)
+            if min(abs(hue - avg_hue), 360 - abs(hue - avg_hue)) < 50:
+                fam.append((hx, hue, sat))
+                placed = True
+                break
+        if not placed:
+            families.append([(hx, hue, sat)])
+
+    # Sort families: most saturated first
+    families.sort(key=lambda f: -sum(c[2] for c in f) / len(f))
+
+    vivid = [t for t in target_bases if not _is_neutral(t)]
+    remap: dict[str, str] = {}
+    used: set[str] = set()
+
+    for i, fam in enumerate(families):
+        unused = [t for t in vivid if t not in used]
+        chosen = unused[i % len(unused)] if unused else vivid[i % len(vivid)]
+        used.add(chosen)
+
+        by_lum = sorted(fam, key=lambda c: _lum(c[0]))
+        base_src = by_lum[0][0]
+        remap[base_src] = chosen
+
+        for src_hx, _, _ in by_lum[1:]:
+            f = min(0.97, max(0.0, _tint_factor(base_src, src_hx)))
+            remap[src_hx] = _tint(chosen, f)
+
+    return remap
+
+
+def build_scheme_slot_remap(
+    slides_bytes: list[bytes],
+    new_colors: dict[str, str],
+) -> dict[str, str]:
+    """
+    Redirect schemeClr slot references that would resolve to off-brand colors
+    after the theme swap (e.g., accent6=green in a cyan theme → accent3=cyan).
+    """
+    brand_entries = [(s, new_colors[s]) for s in _BRAND_SLOTS if s in new_colors]
+    brand_hexes = [h for _, h in brand_entries if not _is_neutral(h)]
+
+    if len(brand_hexes) < 2:
+        return {}
+
+    # Find dominant hue bucket
+    buckets: list[list[tuple[float, str]]] = []
+    for hx in brand_hexes:
+        r, g, b = _h2rgb(hx)
+        hv, _, _ = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+        hue = hv * 360
+        placed = False
+        for bucket in buckets:
+            avg = sum(x[0] for x in bucket) / len(bucket)
+            if min(abs(hue - avg), 360 - abs(hue - avg)) < 50:
+                bucket.append((hue, hx))
+                placed = True
+                break
+        if not placed:
+            buckets.append([(hue, hx)])
+
+    dominant = max(buckets, key=len)
+    dominant_set = {hx for _, hx in dominant}
+    on_brand = [s for s, h in brand_entries if h in dominant_set]
+    off_brand = [s for s, h in brand_entries if h not in dominant_set and not _is_neutral(h)]
+
+    if not off_brand or not on_brand:
+        return {}
+
+    used_slots: set[str] = set()
+    for xml in slides_bytes:
+        for slot in re.findall(rb'schemeClr val="([^"]+)"', xml):
+            used_slots.add(slot.decode())
+
+    slot_remap: dict[str, str] = {}
+    for bad_slot in off_brand:
+        if bad_slot not in used_slots:
+            continue
+        bad_lum = _lum(new_colors[bad_slot])
+        best = min(on_brand, key=lambda s: abs(_lum(new_colors.get(s, "000000")) - bad_lum))
+        slot_remap[bad_slot] = best
+
+    return slot_remap
+
+
+def apply_color_remap(
+    xml_bytes: bytes,
+    srgb_map: dict[str, str],
+    scheme_map: dict[str, str],
+) -> bytes:
+    """Apply srgbClr + schemeClr slot remaps to a slide/layout XML."""
+    s = xml_bytes.decode("utf-8")
+    for old, new in srgb_map.items():
+        s = re.sub(rf'val="{re.escape(old)}"', f'val="{new}"', s, flags=re.I)
+    for old_slot, new_slot in scheme_map.items():
+        s = s.replace(f'schemeClr val="{old_slot}"', f'schemeClr val="{new_slot}"')
+    return s.encode("utf-8")
+
+
+# ---------------------------------------------------------------------------
 # Mode 1 — theme only
 # ---------------------------------------------------------------------------
 
@@ -260,23 +508,39 @@ def swap_theme_only(
     target_path: str | Path,
     theme_bytes: bytes,
     output_path: str | Path,
+    srgb_map: dict[str, str] | None = None,
+    scheme_map: dict[str, str] | None = None,
 ) -> None:
-    """Replace only ppt/theme/theme1.xml."""
+    """Replace ppt/theme/theme*.xml and optionally remap hardcoded colors in slides."""
     target_path = Path(target_path)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    THEME_ENTRY = "ppt/theme/theme1.xml"
+    _srgb = srgb_map or {}
+    _scheme = scheme_map or {}
+    remap_active = bool(_srgb or _scheme)
+
     buf = io.BytesIO()
     with (
         zipfile.ZipFile(target_path, "r") as zin,
         zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zout,
     ):
         for entry in zin.namelist():
-            zout.writestr(entry, theme_bytes if entry == THEME_ENTRY else zin.read(entry))
+            data = zin.read(entry)
+            if re.match(r"ppt/theme/theme\d+\.xml", entry):
+                data = theme_bytes
+            elif remap_active and (
+                re.match(r"ppt/slides/slide\d+\.xml$", entry)
+                or entry.startswith("ppt/slideLayouts/")
+                or entry.startswith("ppt/slideMasters/")
+                or entry.startswith("ppt/charts/")
+            ) and entry.endswith(".xml"):
+                data = apply_color_remap(data, _srgb, _scheme)
+            zout.writestr(entry, data)
 
     output_path.write_bytes(buf.getvalue())
-    print(f"✓ Mode 1 (theme-only) → {output_path}")
+    label = " + color remap" if remap_active else ""
+    print(f"✓ Mode 1 (theme-only{label}) → {output_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -560,6 +824,15 @@ def main() -> None:
         "--verify", action="store_true",
         help="SHA-256 verify replaced parts after writing",
     )
+    parser.add_argument(
+        "--remap-colors", action="store_true", default=False,
+        help=(
+            "Mode 1 only: remap hardcoded srgbClr hex values and schemeClr slot "
+            "references in slides to match the new theme palette. Handles three "
+            "layers: (1) theme-slot hex map, (2) hue-family custom color map, "
+            "(3) off-brand schemeClr slot redirect."
+        ),
+    )
 
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
@@ -664,7 +937,44 @@ def main() -> None:
         return
 
     # ---- Mode 1 (default): theme only ---------------------------------------
-    swap_theme_only(target_path, theme_bytes, output_path)
+    srgb_map: dict[str, str] = {}
+    scheme_map: dict[str, str] = {}
+
+    if args.remap_colors:
+        with (
+            zipfile.ZipFile(target_path, "r") as t_zip,
+            zipfile.ZipFile(source_path, "r") as s_zip,
+        ):
+            old_colors = _extract_theme_colors(t_zip)
+            new_colors = _extract_theme_colors(s_zip)
+            slot_map = build_slot_color_map(old_colors, new_colors)
+            print(f"  srgbClr slot map   ({len(slot_map)}): {slot_map}")
+
+            slides_bytes = [
+                t_zip.read(n)
+                for n in sorted(t_zip.namelist())
+                if re.match(r"ppt/slides/slide\d+\.xml$", n)
+                or re.match(r"ppt/charts/chart\w+\.xml$", n)
+            ]
+            n_charts = sum(
+                1 for n in t_zip.namelist()
+                if re.match(r"ppt/charts/chart\w+\.xml$", n)
+            )
+            if n_charts:
+                print(f"  charts scanned:    {n_charts}")
+            brand_vivid = [
+                h for s in _BRAND_SLOTS
+                for h in [new_colors.get(s, "")] if h and not _is_neutral(h)
+            ]
+            fam_map = build_family_color_map(slides_bytes, slot_map, brand_vivid)
+            fam_map = {k: v for k, v in fam_map.items() if k not in slot_map}
+            print(f"  srgbClr family map ({len(fam_map)}): {fam_map}")
+
+            srgb_map = {**fam_map, **slot_map}
+            scheme_map = build_scheme_slot_remap(slides_bytes, new_colors)
+            print(f"  schemeClr remap    ({len(scheme_map)}): {scheme_map}")
+
+    swap_theme_only(target_path, theme_bytes, output_path, srgb_map, scheme_map)
     if args.verify:
         ok = verify_mode1(output_path, theme_bytes)
         print("\n" + ("All checks passed ✓" if ok else "Some checks FAILED ✗"))

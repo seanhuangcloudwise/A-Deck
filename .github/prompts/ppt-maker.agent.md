@@ -34,15 +34,125 @@ You are a professional PPT design engineer and presentation strategist. You crea
 
 🎨 **绘图库清单（92 个）**
 
-| 类别 | 数量 | 典型图表 |
-|------|------|---------|
-| **GTM 市场策略** (`gm_*`) | 35 | 定位陈述、价值链、竞争矩阵、ROI 商业案例、KPI 看板、GTM 运动图、ICP 分层图 |
-| **业务架构** (`ba_*`) | 9 | 能力地图、价值流、业务流程、角色交互、服务分解、As-Is→To-Be |
-| **应用架构** (`aa_*`) | 11 | 应用全景、组件图、集成地图、限界上下文、事件驱动、微服务分解 |
-| **数据架构** (`da_*`) | 8 | 概念/逻辑数据模型、数据流图、数据治理框架、数据血缘 |
-| **技术架构** (`ta_*`) | 9 | 基础设施拓扑、云架构、容器编排、安全架构、灾备方案 |
-| **BPMN 流程** (`bp_*`) | 10 | 协作概览、编排流、泳道嵌套、事件网关、补偿事务、人机分工 |
-| **路线图规划** (`ra_*`) | 10 | 战略时间线、组合热力矩阵、KPI 里程碑阶梯、能力演进、发布列车、风险看板 |
+GTM 市场策略 (gm_*) × 35
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| GM-01 | 定位陈述 | Positioning Statement |
+| GM-02 | 价值金字塔 | Value Pyramid |
+| GM-03 | 前后对比 | Before / After Comparison |
+| GM-04 | 市场定位矩阵 | Market Positioning Matrix |
+| GM-05 | 竞争对比矩阵 | Competitive Comparison Matrix |
+| GM-06 | 市场生态图 | Market Ecosystem Map |
+| GM-07 | 解决方案参考架构 | Solution Reference Architecture |
+| GM-08 | 客户旅程触点 | Customer Journey Touchpoints |
+| GM-09 | 用例场景 | Use Case Scenario |
+| GM-10 | ROI 商业案例 | ROI Business Case |
+| GM-11 | KPI 看板 | KPI Dashboard Mockup |
+| GM-12 | 客户成功度量 | Customer Success Metrics |
+| GM-13 | GTM 运动图 | GTM Motion Diagram |
+| GM-14 | ICP 分层图 | ICP Segmentation Map |
+| GM-15 | 销售剧本流程 | Sales Playbook Flow |
+| GM-16 | 品类创建 | Category Creation |
+| GM-17 | 分析师简报框架 | Analyst Briefing Framework |
+| GM-18 | 功能能力矩阵 | Feature Capability Matrix |
+| GM-19 | 功能差异化雷达 | Feature Differentiation Radar |
+| GM-20 | 功能用例映射 | Feature Use Case Mapping |
+| GM-21 | 功能深度阶梯 | Feature Depth Ladder |
+| GM-22 | 独特机制图 | Unique Mechanism Diagram |
+| GM-23 | 功能采用漏斗 | Feature Adoption Funnel |
+| GM-24 | 功能发布时间线 | Feature Release Timeline |
+| GM-25 | 功能证明卡 | Feature Proof Card |
+| GM-26 | 价值驱动树 | Value Driver Tree |
+| GM-27 | 能力结果追踪矩阵 | Capability Outcome Trace Matrix |
+| GM-28 | 价值实现曲线 | Time to Value Curve |
+| GM-29 | 基线目标 KPI 表 | Baseline Target KPI Table |
+| GM-30 | 不行动成本表 | Cost of Inaction Table |
+| GM-31 | 收益实现路线图 | Benefit Realization Roadmap |
+| GM-32 | 画像价值地图 | Persona Value Map |
+| GM-33 | 风险降低热力图 | Risk Reduction Heatmap |
+| GM-34 | 证明证据阶梯 | Proof Evidence Ladder |
+| GM-35 | 假设敏感性表 | Assumption Sensitivity Table |
+
+业务架构 (ba_*) × 9
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| BA-01 | 能力地图 | Capability Map |
+| BA-02 | 价值流 | Value Stream |
+| BA-03 | 业务流程 | Business Process |
+| BA-04 | 角色交互 | Actor Interaction |
+| BA-05 | 服务分解 | Service Decomposition |
+| BA-06 | 功能-能力映射 | Function Capability Mapping |
+| BA-07 | As-Is → To-Be | As-Is to Be |
+| BA-08 | 场景旅程 | Scenario Journey |
+| BA-09 | KPI 对齐 | KPI Alignment |
+
+应用架构 (aa_*) × 11
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| AA-01 | 应用全景图 | Application Landscape |
+| AA-02 | 组件图 | Component Diagram |
+| AA-03 | 集成地图 | Integration Map |
+| AA-04 | 限界上下文图 | Bounded Context Map |
+| AA-05 | 服务交互 | Service Interaction |
+| AA-06 | API 依赖图 | API Dependency Graph |
+| AA-07 | 事件驱动架构 | Event-Driven Architecture |
+| AA-08 | 微服务分解 | Microservice Decomposition |
+| AA-09 | 应用能力映射 | App Capability Mapping |
+| AA-10 | 应用序列流 | Application Sequence Flow |
+| AA-11 | 产品能力地图 | Product Capability Map |
+
+数据架构 (da_*) × 8
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| DA-01 | 概念数据模型 | Conceptual Data Model |
+| DA-02 | 逻辑数据模型 | Logical Data Model |
+| DA-03 | 数据流图 | Data Flow Diagram |
+| DA-04 | 数据域图 | Data Domain Map |
+| DA-05 | 数据治理框架 | Data Governance Framework |
+| DA-06 | 主数据生命周期 | Master Data Lifecycle |
+| DA-07 | 数据血缘 | Data Lineage |
+| DA-08 | 数据目录结构 | Data Catalog Structure |
+
+技术架构 (ta_*) × 9
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| TA-01 | 基础设施拓扑 | Infrastructure Topology |
+| TA-02 | 部署架构 | Deployment Architecture |
+| TA-03 | 网络分区 | Network Zoning |
+| TA-04 | 云架构 | Cloud Architecture |
+| TA-05 | 容器编排 | Container Orchestration |
+| TA-06 | 安全架构 | Security Architecture |
+| TA-07 | 监控可观测性 | Monitoring & Observability |
+| TA-08 | 灾备方案 | Disaster Recovery |
+| TA-09 | 平台能力地图 | Platform Capability Map |
+
+BPMN 流程 (bp_*) × 10
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| BP-01 | 协作概览 | Collaboration Overview |
+| BP-02 | 编排流 | Orchestration Flow |
+| BP-03 | 展开子流程 | Expanded Subprocess |
+| BP-04 | 折叠子流程/调用活动 | Collapsed Subprocess / Call Activity |
+| BP-05 | 泳道嵌套流 | Lane Nested Lane Flow |
+| BP-06 | 编排交互 | Choreography Interaction |
+| BP-07 | 会话地图 | Conversation Map |
+| BP-08 | 事件网关控制模式 | Event Gateway Control Pattern |
+| BP-09 | 补偿事务模式 | Compensation Transaction Pattern |
+| BP-10 | 人机分工 | Human / System Split |
+
+路线图规划 (ra_*) × 10
+| ID | 绘图名称 | 说明 |
+|----|---------|------|
+| RA-01 | 战略时间线 | Strategic Timeline |
+| RA-02 | 组合热力矩阵 | Portfolio Heat Matrix |
+| RA-03 | KPI 里程碑阶梯 | KPI Milestone Ladder |
+| RA-04 | 能力演进 | Capability Evolution |
+| RA-05 | 依赖关键路径 | Dependency Critical Path |
+| RA-06 | 季度发布列车 | Release Train Quarterly |
+| RA-07 | 资源优先级矩阵 | Resource Priority Matrix |
+| RA-08 | 风险缓解看板 | Risk Mitigation Kanban |
+| RA-09 | 治理关口 | Governance Gate |
+| RA-10 | 场景投资 | Scenario Investment |
 
 ---
 
